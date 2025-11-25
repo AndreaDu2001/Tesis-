@@ -47,6 +47,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     'apps.authentication',
+    'apps.incidents',  # Sistema de incidencias con eventos RabbitMQ
     # 'apps.reports',
     # 'apps.tasks',
     # 'apps.notifications',

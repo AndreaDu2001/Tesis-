@@ -22,6 +22,7 @@ urlpatterns = [
     
     # API Endpoints
     path('api/auth/', include('apps.authentication.urls')),
+    path('api/', include('apps.incidents.urls')),  # Incidencias con eventos
     # path('api/reports/', include('apps.reports.urls')),
     # path('api/tasks/', include('apps.tasks.urls')),
     # path('api/routes/', include('apps.routes.urls')),

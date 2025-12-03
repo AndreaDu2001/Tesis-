@@ -1,13 +1,15 @@
 from django.conf import settings
-if getattr(settings, 'USE_SQLITE', False):
+
+# Intentamos usar el admin geoespacial; si falla (o estamos en USE_SQLITE) caemos al admin normal
+try:
+    if getattr(settings, 'USE_SQLITE', False):
+        raise ImportError("sqlite-mode")
+    from django.contrib.gis import admin as gis_admin
+    admin = gis_admin
+    GISModelAdmin = getattr(gis_admin, 'GISModelAdmin', gis_admin.ModelAdmin)
+except Exception:
     from django.contrib import admin
     GISModelAdmin = admin.ModelAdmin
-else:
-    from django.contrib.gis import admin as gis_admin
-    # En entorno PostGIS usamos el admin geoespacial
-    GISModelAdmin = getattr(gis_admin, 'GISModelAdmin', gis_admin.ModelAdmin)
-    # Mantener nombre `admin` disponible para decoradores y uso posterior
-    admin = gis_admin
 from .models import CleaningZone, Route, RouteWaypoint
 
 

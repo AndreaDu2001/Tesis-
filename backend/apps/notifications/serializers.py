@@ -21,16 +21,27 @@ class NotificationSerializer(serializers.ModelSerializer):
         read_only=True,
         allow_null=True
     )
+    
+    # Alias en español para frontend
+    tipo = serializers.CharField(source='notification_type', read_only=True)
+    titulo = serializers.CharField(source='title', read_only=True)
+    mensaje = serializers.CharField(source='message', read_only=True)
+    leida = serializers.BooleanField(source='is_read', read_only=True)
+    prioridad = serializers.CharField(source='priority', read_only=True)
+    enviada = serializers.BooleanField(source='is_sent', read_only=True)
+    entregada = serializers.BooleanField(source='is_delivered', read_only=True)
 
     class Meta:
         model = Notification
         fields = [
             'id', 'notification_id', 'user', 'user_name',
-            'notification_type', 'notification_type_display',
-            'title', 'message', 'priority', 'priority_display',
+            'notification_type', 'notification_type_display', 'tipo',
+            'title', 'message', 'titulo', 'mensaje',
+            'priority', 'priority_display', 'prioridad',
             'delivery_channels', 'related_task_id', 'related_incident_id',
             'related_route_id', 'action_url', 'metadata', 'icon', 'image_url',
-            'is_read', 'read_at', 'is_sent', 'sent_at', 'is_delivered', 'delivered_at',
+            'is_read', 'leida', 'read_at', 'is_sent', 'enviada', 'sent_at',
+            'is_delivered', 'entregada', 'delivered_at',
             'scheduled_for', 'expires_at', 'created_at', 'updated_at',
             'created_by', 'created_by_name', 'delivery_errors', 'retry_count'
         ]

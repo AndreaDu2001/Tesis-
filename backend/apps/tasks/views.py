@@ -1,7 +1,6 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q, Count, Avg, Sum
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,7 +11,8 @@ from .serializers import (
     TaskSerializer, TaskCreateSerializer, TaskUpdateSerializer,
     TaskCheckpointSerializer, TaskAssignmentHistorySerializer,
     TaskAssignmentSerializer, TaskStatusUpdateSerializer,
-    CheckpointCompleteSerializer, TaskStatisticsSerializer
+    CheckpointCompleteSerializer, TaskStatisticsSerializer,
+    TaskListSerializer
 )
 
 
@@ -39,7 +39,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.select_related(
         'route', 'incident', 'assigned_to', 'created_by'
     ).prefetch_related('checkpoints', 'history')
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'priority', 'assigned_to', 'scheduled_date']
     search_fields = ['task_id', 'title', 'description', 'address']
@@ -51,6 +51,8 @@ class TaskViewSet(viewsets.ModelViewSet):
             return TaskCreateSerializer
         elif self.action in ['update', 'partial_update']:
             return TaskUpdateSerializer
+        elif self.action == 'list':
+            return TaskListSerializer
         return TaskSerializer
 
     def perform_create(self, serializer):
@@ -312,7 +314,7 @@ class TaskCheckpointViewSet(viewsets.ModelViewSet):
     """
     queryset = TaskCheckpoint.objects.select_related('task', 'completed_by')
     serializer_class = TaskCheckpointSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['task', 'is_completed']
     ordering = ['task', 'checkpoint_order']
@@ -356,7 +358,7 @@ class TaskAssignmentHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         'task', 'performed_by', 'previous_assignee', 'new_assignee'
     )
     serializer_class = TaskAssignmentHistorySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['task', 'action', 'performed_by']
     ordering = ['-timestamp']

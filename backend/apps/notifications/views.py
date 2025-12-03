@@ -1,7 +1,6 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from .models import Notification, DeviceToken, NotificationPreference
@@ -15,13 +14,17 @@ from .serializers import (
 class NotificationViewSet(viewsets.ModelViewSet):
     """ViewSet para gestión de notificaciones."""
     serializer_class = NotificationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['notification_type', 'is_read', 'priority']
     ordering = ['-created_at']
 
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user)
+        user = getattr(self.request, 'user', None)
+        # Si el usuario no está autenticado, devolver queryset vacío (no mostrar notificaciones privadas)
+        if user is None or getattr(user, 'is_anonymous', True):
+            return Notification.objects.none()
+        return Notification.objects.filter(user=user)
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -66,7 +69,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
 class DeviceTokenViewSet(viewsets.ModelViewSet):
     """ViewSet para gestión de tokens de dispositivos."""
     serializer_class = DeviceTokenSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return DeviceToken.objects.filter(user=self.request.user)
@@ -78,7 +81,7 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
 class NotificationPreferenceViewSet(viewsets.ModelViewSet):
     """ViewSet para gestión de preferencias de notificaciones."""
     serializer_class = NotificationPreferenceSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return NotificationPreference.objects.filter(user=self.request.user)

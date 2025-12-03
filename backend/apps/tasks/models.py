@@ -1,9 +1,18 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.contrib.gis.db import models as gis_models
+from django.conf import settings
+from django.db import models as django_models
 from apps.routes.models import Route
 from apps.incidents.models import Incident
+
+# Fallback para campos GIS cuando USE_SQLITE=True
+if getattr(settings, 'USE_SQLITE', False):
+    class _GISFallback:
+        PointField = django_models.JSONField
+    gis_models = _GISFallback()
+else:
+    from django.contrib.gis.db import models as gis_models
 
 User = get_user_model()
 

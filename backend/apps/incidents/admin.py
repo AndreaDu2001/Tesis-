@@ -1,5 +1,11 @@
 from django.contrib import admin
-from django.contrib.gis.admin import OSMGeoAdmin
+from django.conf import settings
+
+# Fallback para admin GIS en modo SQLite
+if getattr(settings, 'USE_SQLITE', False):
+    OSMGeoAdmin = admin.ModelAdmin
+else:
+    from django.contrib.gis.admin import OSMGeoAdmin
 from .models import Incident, IncidentAttachment, IncidentEvent, OutboxEvent
 
 

@@ -1,6 +1,30 @@
-from django.contrib.gis.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.conf import settings
+from django.db import models
+from django.db import models as django_models
 import uuid
+
+# Compatibilidad para modo SQLite: usar JSONField en lugar de campos GIS
+if getattr(settings, 'USE_SQLITE', False):
+    class _GISFallback:
+        class PolygonField(django_models.JSONField):
+            def __init__(self, *args, **kwargs):
+                kwargs.pop('srid', None)
+                super().__init__(*args, **kwargs)
+
+        class LineStringField(django_models.JSONField):
+            def __init__(self, *args, **kwargs):
+                kwargs.pop('srid', None)
+                super().__init__(*args, **kwargs)
+
+        class PointField(django_models.JSONField):
+            def __init__(self, *args, **kwargs):
+                kwargs.pop('srid', None)
+                super().__init__(*args, **kwargs)
+
+    gis_models = _GISFallback()
+else:
+    from django.contrib.gis.db import models as gis_models
 
 
 class CleaningZone(models.Model):
@@ -22,7 +46,7 @@ class CleaningZone(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     zone_name = models.CharField(max_length=200, unique=True)
     description = models.TextField(blank=True, null=True)
-    zone_polygon = models.PolygonField(srid=4326)  # Polígono geográfico
+    zone_polygon = gis_models.PolygonField(srid=4326)  # Polígono geográfico
     priority = models.IntegerField(
         default=1,
         validators=[MinValueValidator(1), MaxValueValidator(5)],
@@ -71,7 +95,7 @@ class Route(models.Model):
         null=True,
         blank=True
     )
-    route_geometry = models.LineStringField(srid=4326)  # LineString geográfica
+    route_geometry = gis_models.LineStringField(srid=4326)  # LineString geográfica
     waypoints = models.JSONField(help_text="Array de puntos con lat/lon")
     total_distance_km = models.DecimalField(
         max_digits=10,
@@ -120,7 +144,7 @@ class RouteWaypoint(models.Model):
         related_name='route_waypoints'
     )
     waypoint_order = models.IntegerField()
-    location = models.PointField(srid=4326)
+    location = gis_models.PointField(srid=4326)
     address = models.CharField(max_length=300, blank=True, null=True)
     waypoint_type = models.CharField(
         max_length=20,

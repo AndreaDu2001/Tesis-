@@ -1,5 +1,11 @@
 from rest_framework import serializers
-from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from django.conf import settings
+
+# Fallback para GeoFeatureModelSerializer en modo SQLite
+if getattr(settings, 'USE_SQLITE', False):
+    GeoFeatureModelSerializer = serializers.ModelSerializer
+else:
+    from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from django.contrib.auth import get_user_model
 from .models import Task, TaskCheckpoint, TaskAssignmentHistory
 
@@ -27,14 +33,19 @@ class TaskCheckpointSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at', 'completed_at', 'completed_by']
 
     def get_location_lat(self, obj):
-        if obj.location:
-            return obj.location.y
+        if not obj.location:
+            return None
+        if getattr(settings, 'USE_SQLITE', False):
+            return obj.location.get('lat')
+        return obj.location.y
         return None
 
     def get_location_lon(self, obj):
-        if obj.location:
-            return obj.location.x
-        return None
+        if not obj.location:
+            return None
+        if getattr(settings, 'USE_SQLITE', False):
+            return obj.location.get('lon')
+        return obj.location.x
 
 
 class TaskAssignmentHistorySerializer(serializers.ModelSerializer):
@@ -139,15 +150,17 @@ class TaskCreateSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        from django.contrib.gis.geos import Point
-        
         # Extraer coordenadas
         location_lat = validated_data.pop('location_lat', None)
         location_lon = validated_data.pop('location_lon', None)
 
-        # Crear punto geográfico si hay coordenadas
+        # Crear punto geográfico si hay coordenadas (fallback si USE_SQLITE)
         if location_lat and location_lon:
-            validated_data['location'] = Point(location_lon, location_lat)
+            if getattr(settings, 'USE_SQLITE', False):
+                validated_data['location'] = {"lon": float(location_lon), "lat": float(location_lat)}
+            else:
+                from django.contrib.gis.geos import Point
+                validated_data['location'] = Point(location_lon, location_lat)
 
         # Establecer usuario creador
         validated_data['created_by'] = self.context['request'].user
@@ -173,15 +186,17 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
         ]
 
     def update(self, instance, validated_data):
-        from django.contrib.gis.geos import Point
-        
         # Extraer coordenadas
         location_lat = validated_data.pop('location_lat', None)
         location_lon = validated_data.pop('location_lon', None)
 
         # Actualizar punto geográfico si hay coordenadas
         if location_lat and location_lon:
-            validated_data['location'] = Point(location_lon, location_lat)
+            if getattr(settings, 'USE_SQLITE', False):
+                validated_data['location'] = {"lon": float(location_lon), "lat": float(location_lat)}
+            else:
+                from django.contrib.gis.geos import Point
+                validated_data['location'] = Point(location_lon, location_lat)
 
         return super().update(instance, validated_data)
 

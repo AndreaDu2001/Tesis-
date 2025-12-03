@@ -1,5 +1,11 @@
 from rest_framework import serializers
-from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from django.conf import settings
+
+# En modo SQLite local no dependemos de rest_framework_gis (evita GEOS/GDAL)
+if getattr(settings, 'USE_SQLITE', False):
+    GeoFeatureModelSerializer = serializers.ModelSerializer
+else:
+    from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from .models import CleaningZone, Route, RouteWaypoint
 
 
@@ -31,10 +37,41 @@ class RouteWaypointSerializer(serializers.ModelSerializer):
         ]
     
     def get_latitude(self, obj):
-        return obj.location.y if obj.location else None
+        loc = getattr(obj, 'location', None)
+        if not loc:
+            return None
+        # GEOSPoint
+        if hasattr(loc, 'y') and hasattr(loc, 'x'):
+            return loc.y
+        # JSON/dict fallback
+        if isinstance(loc, dict):
+            if 'coordinates' in loc and isinstance(loc['coordinates'], (list, tuple)):
+                # GeoJSON-like [lon, lat]
+                coords = loc['coordinates']
+                if len(coords) >= 2:
+                    return coords[1]
+            if 'lat' in loc:
+                return loc.get('lat')
+            if 'latitude' in loc:
+                return loc.get('latitude')
+        return None
     
     def get_longitude(self, obj):
-        return obj.location.x if obj.location else None
+        loc = getattr(obj, 'location', None)
+        if not loc:
+            return None
+        if hasattr(loc, 'x') and hasattr(loc, 'y'):
+            return loc.x
+        if isinstance(loc, dict):
+            if 'coordinates' in loc and isinstance(loc['coordinates'], (list, tuple)):
+                coords = loc['coordinates']
+                if len(coords) >= 2:
+                    return coords[0]
+            if 'lon' in loc:
+                return loc.get('lon')
+            if 'longitude' in loc:
+                return loc.get('longitude')
+        return None
 
 
 class RouteSerializer(GeoFeatureModelSerializer):

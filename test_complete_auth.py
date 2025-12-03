@@ -6,6 +6,11 @@ Script completo para probar el sistema de autenticación con RabbitMQ.
 import requests
 import time
 import json
+import pytest
+
+# Este archivo es un script standalone para pruebas manuales del backend.
+# Pytest lo ignora porque está diseñado para ejecutarse con `python test_complete_auth.py`.
+pytest.skip("Este archivo se ejecuta como script; no forma parte de la suite pytest.", allow_module_level=True)
 
 # URL del backend
 BASE_URL = "http://localhost:8000"

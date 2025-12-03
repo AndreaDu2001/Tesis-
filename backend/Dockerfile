@@ -35,5 +35,7 @@ EXPOSE 8000
 # Script de inicio
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+# Asegurar finales de línea Unix en entrypoint (evita errores CRLF en Windows hosts)
+RUN sed -i 's/\r$//' /entrypoint.sh || true
 
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]

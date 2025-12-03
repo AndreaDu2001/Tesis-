@@ -25,6 +25,10 @@ USE_SQLITE = config('USE_SQLITE', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,backend,0.0.0.0,*', cast=lambda v: [s.strip() for s in v.split(',')])
 
+# Asegurar que el host del contenedor `backend` esté permitido (útil en docker-compose)
+if 'backend' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('backend')
+
 # Application definition
 DJANGO_APPS = [
     'django.contrib.admin',

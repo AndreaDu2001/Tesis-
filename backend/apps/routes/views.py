@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -10,14 +10,14 @@ if getattr(settings, 'USE_SQLITE', False):
         return {"lon": lon, "lat": lat}
 
     def LineString(coords):
-        return coords
+        return {"type": "LineString", "coordinates": coords}
 else:
     from django.contrib.gis.geos import Point, LineString
 from .models import CleaningZone, Route, RouteWaypoint
 from .serializers import (
-    CleaningZoneSerializer, RouteSerializer, RouteWaypointSerializer,
+    CleaningZoneSerializer, CleaningZoneListSerializer, RouteSerializer, RouteWaypointSerializer,
     CalculateRouteRequestSerializer, CreateRouteRequestSerializer,
-    NearestRoadRequestSerializer
+    NearestRoadRequestSerializer, RouteListSerializer
 )
 from .osrm_service import osrm_service
 import logging
@@ -29,7 +29,12 @@ class CleaningZoneViewSet(viewsets.ModelViewSet):
     """ViewSet para zonas de limpieza"""
     queryset = CleaningZone.objects.all()
     serializer_class = CleaningZoneSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CleaningZoneListSerializer
+        return CleaningZoneSerializer
     
     @action(detail=False, methods=['get'])
     def active(self, request):
@@ -51,7 +56,12 @@ class RouteViewSet(viewsets.ModelViewSet):
     """ViewSet para rutas optimizadas"""
     queryset = Route.objects.all()
     serializer_class = RouteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return RouteListSerializer
+        return RouteSerializer
     
     @action(detail=False, methods=['post'])
     def calculate(self, request):

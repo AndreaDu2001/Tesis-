@@ -3,7 +3,9 @@ if getattr(settings, 'USE_SQLITE', False):
     from django.contrib import admin
     GISModelAdmin = admin.ModelAdmin
 else:
-    from django.contrib.gis import admin
+    from django.contrib.gis import admin as gis_admin
+    # En entorno PostGIS usamos el admin geoespacial
+    GISModelAdmin = getattr(gis_admin, 'GISModelAdmin', gis_admin.ModelAdmin)
 from .models import CleaningZone, Route, RouteWaypoint
 
 

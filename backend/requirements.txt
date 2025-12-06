@@ -4,6 +4,8 @@ djangorestframework==3.14.0
 django-cors-headers==4.3.1
 django-filter==23.5
 django-extensions==3.2.3
+gunicorn==21.2.0
+whitenoise==6.5.0
 
 # Autenticación y JWT
 djangorestframework-simplejwt==5.3.0

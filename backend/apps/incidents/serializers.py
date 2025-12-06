@@ -3,7 +3,12 @@ Serializers para la API REST de incidencias.
 """
 
 from rest_framework import serializers
-from django.contrib.gis.geos import Point
+from django.conf import settings
+if getattr(settings, 'USE_SQLITE', False):
+    def Point(lon, lat):
+        return {"lon": lon, "lat": lat}
+else:
+    from django.contrib.gis.geos import Point
 from .models import Incident, IncidentAttachment, IncidentEvent
 
 
@@ -55,32 +60,44 @@ class IncidentSerializer(serializers.ModelSerializer):
     
     def get_ubicacion(self, obj):
         """Retorna ubicación en formato GeoJSON"""
-        if obj.location:
+        if not obj.location:
+            return None
+        # En modo SQLite la ubicación se guarda como dict {'lon':..., 'lat':...}
+        if getattr(settings, 'USE_SQLITE', False):
             return {
                 'type': 'Point',
-                'coordinates': [obj.location.x, obj.location.y]
+                'coordinates': [obj.location.get('lon'), obj.location.get('lat')]
             }
+        return {
+            'type': 'Point',
+            'coordinates': [obj.location.x, obj.location.y]
+        }
         return None
     
     def get_lat(self, obj):
         """Retorna latitud del punto"""
-        if obj.location:
-            return obj.location.y
-        return None
+        if not obj.location:
+            return None
+        if getattr(settings, 'USE_SQLITE', False):
+            return obj.location.get('lat')
+        return obj.location.y
     
     def get_lon(self, obj):
         """Retorna longitud del punto"""
-        if obj.location:
-            return obj.location.x
-        return None
+        if not obj.location:
+            return None
+        if getattr(settings, 'USE_SQLITE', False):
+            return obj.location.get('lon')
+        return obj.location.x
     
     def create(self, validated_data):
         """Crea un incidente con ubicación geográfica"""
-        latitude = validated_data.pop('latitude')
-        longitude = validated_data.pop('longitude')
+        latitude = validated_data.pop('latitude', None)
+        longitude = validated_data.pop('longitude', None)
         
-        # Crear Point de PostGIS
-        validated_data['location'] = Point(longitude, latitude)
+        # Crear Point de PostGIS o representación en JSON
+        if latitude is not None and longitude is not None:
+            validated_data['location'] = Point(longitude, latitude)
         
         return super().create(validated_data)
     
@@ -89,7 +106,8 @@ class IncidentSerializer(serializers.ModelSerializer):
         if 'latitude' in validated_data and 'longitude' in validated_data:
             latitude = validated_data.pop('latitude')
             longitude = validated_data.pop('longitude')
-            validated_data['location'] = Point(longitude, latitude)
+            instance.location = Point(longitude, latitude)
+            instance.save(update_fields=['location'])
         
         return super().update(instance, validated_data)
 

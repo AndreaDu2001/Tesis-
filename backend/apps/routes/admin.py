@@ -1,9 +1,20 @@
-from django.contrib.gis import admin
+from django.conf import settings
+
+# Intentamos usar el admin geoespacial; si falla (o estamos en USE_SQLITE) caemos al admin normal
+try:
+    if getattr(settings, 'USE_SQLITE', False):
+        raise ImportError("sqlite-mode")
+    from django.contrib.gis import admin as gis_admin
+    admin = gis_admin
+    GISModelAdmin = getattr(gis_admin, 'GISModelAdmin', gis_admin.ModelAdmin)
+except Exception:
+    from django.contrib import admin
+    GISModelAdmin = admin.ModelAdmin
 from .models import CleaningZone, Route, RouteWaypoint
 
 
 @admin.register(CleaningZone)
-class CleaningZoneAdmin(admin.GISModelAdmin):
+class CleaningZoneAdmin(GISModelAdmin):
     list_display = ['zone_name', 'priority', 'frequency', 'status', 'created_at']
     list_filter = ['status', 'priority', 'frequency']
     search_fields = ['zone_name', 'description']
@@ -26,7 +37,7 @@ class CleaningZoneAdmin(admin.GISModelAdmin):
 
 
 @admin.register(Route)
-class RouteAdmin(admin.GISModelAdmin):
+class RouteAdmin(GISModelAdmin):
     list_display = ['route_name', 'zone', 'total_distance_km', 'estimated_duration_minutes', 'status', 'created_at']
     list_filter = ['status', 'optimization_algorithm']
     search_fields = ['route_name', 'zone__zone_name']
@@ -49,7 +60,7 @@ class RouteAdmin(admin.GISModelAdmin):
 
 
 @admin.register(RouteWaypoint)
-class RouteWaypointAdmin(admin.GISModelAdmin):
+class RouteWaypointAdmin(GISModelAdmin):
     list_display = ['route', 'waypoint_order', 'waypoint_type', 'address']
     list_filter = ['waypoint_type']
     search_fields = ['route__route_name', 'address']

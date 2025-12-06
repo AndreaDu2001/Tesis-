@@ -6,6 +6,7 @@ WORKDIR /app
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
     build-essential \
+    bash \
     libpq-dev \
     gdal-bin \
     libgdal-dev \
@@ -34,5 +35,7 @@ EXPOSE 8000
 # Script de inicio
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+# Asegurar finales de línea Unix en entrypoint (evita errores CRLF en Windows hosts)
+RUN sed -i 's/\r$//' /entrypoint.sh || true
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]

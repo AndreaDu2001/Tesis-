@@ -163,7 +163,12 @@ def handle_incident_submitted(event_data: Dict[str, Any]):
     Actualiza el dashboard en tiempo real.
     """
     from apps.incidents.models import Incident, IncidentEvent
-    from django.contrib.gis.geos import Point
+        from django.conf import settings
+        if getattr(settings, 'USE_SQLITE', False):
+            def Point(lon, lat):
+                return {"lon": float(lon), "lat": float(lat)}
+        else:
+            from django.contrib.gis.geos import Point
     from django.utils.dateutil import parser
     
     try:

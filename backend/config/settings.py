@@ -20,6 +20,9 @@ SECRET_KEY = config('SECRET_KEY', default='tu-clave-secreta-por-defecto-cambiame
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
+# Flag para modo desarrollo local: usar SQLite y evitar dependencias GIS
+USE_SQLITE = config('USE_SQLITE', default=False, cast=bool)
+
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,backend,0.0.0.0,*', cast=lambda v: [s.strip() for s in v.split(',')])
 
 # Asegurar que el host del contenedor `backend` esté permitido (útil en docker-compose)
@@ -61,6 +64,14 @@ LOCAL_APPS = [
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+# Si usamos SQLite en desarrollo, evitamos cargar la app GIS (evita dependencia de GDAL/GEOS)
+if USE_SQLITE:
+    # Quitar la app GIS
+    DJANGO_APPS = [a for a in DJANGO_APPS if a != 'django.contrib.gis']
+    # Quitar paquetes terceros que dependen de GDAL/GEOS (ej. leaflet)
+    THIRD_PARTY_APPS = [a for a in THIRD_PARTY_APPS if not a.startswith('leaflet')]
+    INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -107,6 +118,15 @@ DATABASES = {
         }
     }
 }
+
+# Modo desarrollo: usar SQLite en lugar de PostGIS si se define USE_SQLITE en el entorno.
+if config('USE_SQLITE', default=False, cast=bool):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

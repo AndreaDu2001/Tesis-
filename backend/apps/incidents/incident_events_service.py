@@ -15,9 +15,17 @@ import json
 import logging
 from datetime import datetime
 from typing import Dict, Any, Optional
-import pika
-from pika.exceptions import AMQPConnectionError, AMQPChannelError
 from django.conf import settings
+
+try:
+    import pika
+    from pika.exceptions import AMQPConnectionError, AMQPChannelError
+    PIKA_AVAILABLE = True
+except Exception:  # pragma: no cover - optional in dev
+    pika = None
+    AMQPConnectionError = Exception
+    AMQPChannelError = Exception
+    PIKA_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +49,10 @@ class IncidentEventService:
     def __init__(self):
         self.connection = None
         self.channel = None
-        self._connect()
+        if PIKA_AVAILABLE:
+            self._connect()
+        else:
+            logging.getLogger(__name__).info("pika no está disponible; Incident events deshabilitados en este entorno")
     
     def _connect(self):
         """Establece conexión con RabbitMQ"""

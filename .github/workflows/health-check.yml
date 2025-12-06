@@ -1,0 +1,60 @@
+name: 📊 Health Check & Monitoring
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    name: Backend Health Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check Backend Status
+        run: |
+          echo "🔍 Checking backend health endpoint..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://residuos-backend.onrender.com/health/ || echo "000")
+          
+          if [ "$STATUS" == "200" ]; then
+            echo "✅ Backend is healthy (HTTP $STATUS)"
+          else
+            echo "⚠️  Backend returned HTTP $STATUS"
+          fi
+          
+          exit 0
+      
+      - name: Check Frontend Status
+        run: |
+          echo "🔍 Checking frontend status..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://residuos-frontend.onrender.com/ || echo "000")
+          
+          if [ "$STATUS" == "200" ]; then
+            echo "✅ Frontend is healthy (HTTP $STATUS)"
+          else
+            echo "⚠️  Frontend returned HTTP $STATUS"
+          fi
+          
+          exit 0
+      
+      - name: Check API Endpoints
+        run: |
+          echo "🔍 Testing API endpoints..."
+          
+          INCIDENTS=$(curl -s https://residuos-backend.onrender.com/api/incidents/ | wc -c)
+          if [ $INCIDENTS -gt 0 ]; then
+            echo "✅ Incidents endpoint working"
+          else
+            echo "⚠️  Incidents endpoint not responding"
+          fi
+          
+          TASKS=$(curl -s https://residuos-backend.onrender.com/api/tasks/ | wc -c)
+          if [ $TASKS -gt 0 ]; then
+            echo "✅ Tasks endpoint working"
+          else
+            echo "⚠️  Tasks endpoint not responding"
+          fi
+          
+          exit 0

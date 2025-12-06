@@ -9,7 +9,17 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from django.contrib.auth import get_user_model
-from django.contrib.gis.geos import Point, Polygon
+from django.conf import settings
+
+# Compatibilidad con modo SQLite: usar representaciones simples cuando USE_SQLITE=True
+if getattr(settings, 'USE_SQLITE', False):
+    def Point(lon, lat):
+        return {"lon": lon, "lat": lat}
+
+    def Polygon(coords):
+        return coords
+else:
+    from django.contrib.gis.geos import Point, Polygon
 from apps.incidents.models import Incident
 from apps.routes.models import CleaningZone
 from apps.notifications.models import Notification

@@ -1,7 +1,18 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.contrib.gis.geos import Point, LineString
+from rest_framework.permissions import IsAuthenticated
+from django.conf import settings
+
+# Fallback para objetos geométricos cuando USE_SQLITE=True
+if getattr(settings, 'USE_SQLITE', False):
+    def Point(lon, lat, srid=None):
+        return {"lon": lon, "lat": lat}
+
+    def LineString(coords):
+        return {"type": "LineString", "coordinates": coords}
+else:
+    from django.contrib.gis.geos import Point, LineString
 from .models import CleaningZone, Route, RouteWaypoint
 from .serializers import (
     CleaningZoneSerializer, CleaningZoneListSerializer, RouteSerializer, RouteWaypointSerializer,

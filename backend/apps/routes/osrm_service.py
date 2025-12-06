@@ -6,7 +6,18 @@ para cálculo de rutas optimizadas en el sistema de gestión de residuos.
 import requests
 import logging
 from typing import List, Dict, Tuple, Optional
-from django.contrib.gis.geos import LineString, Point
+from django.conf import settings
+
+# Fallback para geometrías en modo SQLite
+if getattr(settings, 'USE_SQLITE', False):
+    def Point(lon, lat, srid=None):
+        return {"lon": lon, "lat": lat}
+
+    def LineString(coords, srid=None):
+        # Representación GeoJSON mínima
+        return {"type": "LineString", "coordinates": coords}
+else:
+    from django.contrib.gis.geos import LineString, Point
 from decimal import Decimal
 
 logger = logging.getLogger(__name__)
@@ -304,7 +315,10 @@ class OSRMService:
         # Convertir geometría GeoJSON a LineString de Django
         if geometry.get('type') == 'LineString':
             coordinates = geometry.get('coordinates', [])
-            linestring = LineString([Point(lon, lat) for lon, lat in coordinates], srid=4326)
+            if getattr(settings, 'USE_SQLITE', False):
+                linestring = geometry
+            else:
+                linestring = LineString([Point(lon, lat) for lon, lat in coordinates], srid=4326)
         else:
             linestring = None
         
@@ -333,7 +347,10 @@ class OSRMService:
         # Convertir geometría
         if geometry.get('type') == 'LineString':
             coordinates = geometry.get('coordinates', [])
-            linestring = LineString([Point(lon, lat) for lon, lat in coordinates], srid=4326)
+            if getattr(settings, 'USE_SQLITE', False):
+                linestring = geometry
+            else:
+                linestring = LineString([Point(lon, lat) for lon, lat in coordinates], srid=4326)
         else:
             linestring = None
         

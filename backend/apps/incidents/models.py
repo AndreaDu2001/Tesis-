@@ -4,10 +4,15 @@ Compatible con el sistema de eventos RabbitMQ del latacunga_clean_app.
 """
 
 import uuid
-from django.contrib.gis.db import models
-from django.contrib.gis.geos import Point
 from django.utils import timezone
 from django.conf import settings
+
+# Soporte para ejecutar el proyecto en modo desarrollo con SQLite
+if getattr(settings, 'USE_SQLITE', False):
+    from django.db import models
+else:
+    from django.contrib.gis.db import models
+    from django.contrib.gis.geos import Point
 
 
 class IncidentType(models.TextChoices):
@@ -60,11 +65,19 @@ class Incident(models.Model):
         help_text='Descripción detallada del incidente'
     )
     
-    # Ubicación geográfica (PostGIS)
-    location = models.PointField(
-        help_text='Ubicación geográfica del incidente (lat, lon)',
-        srid=4326  # WGS84
-    )
+    # Ubicación geográfica (PostGIS) o representación JSON en SQLite
+    if getattr(settings, 'USE_SQLITE', False):
+        # Guardamos como JSON: {"lat": ..., "lon": ...}
+        location = models.JSONField(
+            blank=True,
+            null=True,
+            help_text='Ubicación geográfica del incidente (lat, lon) en modo SQLite JSON'
+        )
+    else:
+        location = models.PointField(
+            help_text='Ubicación geográfica del incidente (lat, lon)',
+            srid=4326  # WGS84
+        )
     address = models.CharField(
         max_length=255,
         blank=True,
@@ -107,12 +120,20 @@ class Incident(models.Model):
     @property
     def latitude(self):
         """Retorna la latitud del punto"""
-        return self.location.y if self.location else None
+        if not self.location:
+            return None
+        if getattr(settings, 'USE_SQLITE', False):
+            return self.location.get('lat') if isinstance(self.location, dict) else None
+        return self.location.y
     
     @property
     def longitude(self):
         """Retorna la longitud del punto"""
-        return self.location.x if self.location else None
+        if not self.location:
+            return None
+        if getattr(settings, 'USE_SQLITE', False):
+            return self.location.get('lon') if isinstance(self.location, dict) else None
+        return self.location.x
     
     def to_event_payload(self):
         """

@@ -1,4 +1,9 @@
-import pika
+try:
+    import pika
+    PIKA_AVAILABLE = True
+except Exception:  # pragma: no cover - optional in dev
+    pika = None
+    PIKA_AVAILABLE = False
 import json
 import logging
 from datetime import datetime
@@ -18,6 +23,12 @@ class RabbitMQService:
     
     def _connect(self):
         """Establecer conexión con RabbitMQ."""
+        if not PIKA_AVAILABLE:
+            logger.info("pika no está disponible; RabbitMQ deshabilitado en este entorno")
+            self.connection = None
+            self.channel = None
+            return
+
         try:
             # Crear credenciales
             credentials = pika.PlainCredentials('tesis', 'tesis')

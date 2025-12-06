@@ -53,14 +53,42 @@ function App() {
     // Verificar si hay un usuario logueado al cargar la app
     const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('access_token');
-    
+
     if (storedUser && token) {
       try {
         setUser(JSON.parse(storedUser));
+        return;
       } catch (error) {
         console.error('Error parsing stored user:', error);
         localStorage.clear();
       }
+    }
+
+    // Auto-login de desarrollo: si estamos en localhost y no hay token,
+    // intentar iniciar sesión con el admin de prueba (solo para entorno local).
+    const host = window.location.hostname;
+    const isLocal = host === 'localhost' || host === '127.0.0.1';
+
+    if (isLocal && !token) {
+      (async () => {
+        try {
+          const resp = await fetch('http://localhost:8000/api/auth/login/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: 'admin@latacunga.gob.ec', password: 'admin123' }),
+          });
+
+          if (!resp.ok) return;
+          const data = await resp.json();
+          localStorage.setItem('access_token', data.access);
+          localStorage.setItem('refresh_token', data.refresh);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          setUser(data.user);
+        } catch (e) {
+          // No bloquear la app si falla el auto-login
+          console.warn('Auto-login failed:', e);
+        }
+      })();
     }
   }, []);
 

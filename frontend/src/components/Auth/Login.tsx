@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import API_ENDPOINTS from '../../config/api';
 import {
   Box,
   Card,
@@ -84,7 +85,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/auth/login/', {
+      const response = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +122,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/auth/register/', {
+      const response = await fetch(API_ENDPOINTS.AUTH.REGISTER, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,7 +154,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/auth/otp/request/', {
+      const response = await fetch(API_ENDPOINTS.AUTH.OTP_REQUEST || `${API_ENDPOINTS.AUTH.LOGIN.replace('/login/','')}/otp/request/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -190,7 +191,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/auth/otp/verify/', {
+      const response = await fetch(API_ENDPOINTS.AUTH.OTP_VERIFY || `${API_ENDPOINTS.AUTH.LOGIN.replace('/login/','')}/otp/verify/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

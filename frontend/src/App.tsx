@@ -17,6 +17,7 @@ import {
   ExitToApp,
 } from '@mui/icons-material';
 import Login from './components/Auth/Login';
+import API_ENDPOINTS from './config/api';
 import Dashboard from './components/Layout/Dashboard';
 import IncidentsPage from './components/Incidents/IncidentsPage';
 import RoutesPage from './components/Routes/RoutesPage';
@@ -69,10 +70,10 @@ function App() {
     const host = window.location.hostname;
     const isLocal = host === 'localhost' || host === '127.0.0.1';
 
-    if (isLocal && !token) {
+        if (isLocal && !token) {
       (async () => {
         try {
-          const resp = await fetch('http://localhost:8000/api/auth/login/', {
+          const resp = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ identifier: 'admin@latacunga.gob.ec', password: 'admin123' }),

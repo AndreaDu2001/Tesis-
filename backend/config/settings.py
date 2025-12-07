@@ -5,6 +5,7 @@ Configuración de Django para el proyecto de Gestión de Residuos Latacunga
 import os
 from pathlib import Path
 from decouple import config
+import dj_database_url
 
 # Supabase Configuration
 SUPABASE_URL = config('SUPABASE_URL', default='https://ancwrsnnrchgwzrrbmwc.supabase.co')
@@ -93,19 +94,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database Configuration - PostgreSQL Local con Servicios Supabase
+# Database Configuration - PostgreSQL con Supabase
+db_config = dj_database_url.config(
+    default=os.environ.get(
+        'DATABASE_URL',
+        'postgresql://postgres:postgres123@db:5432/residuos_latacunga'
+    ),
+    conn_max_age=600,
+    conn_health_checks=True,
+)
+
+# Usar PostGIS en lugar de PostgreSQL
+if db_config.get('ENGINE') == 'django.db.backends.postgresql':
+    db_config['ENGINE'] = 'django.contrib.gis.db.backends.postgis'
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': config('DB_NAME', default='residuos_latacunga'),
-        'USER': config('DB_USER', default='postgres'),
-        'PASSWORD': config('DB_PASSWORD', default='postgres123'),
-        'HOST': config('DB_HOST', default='db'),
-        'PORT': config('DB_PORT', default='5432'),
-        'OPTIONS': {
-            'sslmode': 'prefer',
-        }
-    }
+    'default': db_config
 }
 
 # Password validation
@@ -180,13 +184,14 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,
 }
 
-# CORS Settings - Configuración corregida para puerto 3001
+# CORS Settings - Configuración para desarrollo y producción
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001", 
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
     "https://ancwrsnnrchgwzrrbmwc.supabase.co",
+    "https://tesis-1-z78t.onrender.com",  # Frontend Render
 ]
 
 CORS_ALLOW_CREDENTIALS = True

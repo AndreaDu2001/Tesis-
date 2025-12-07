@@ -154,7 +154,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     setError('');
 
     try {
-      const response = await fetch(API_ENDPOINTS.AUTH.OTP_REQUEST || `${API_ENDPOINTS.AUTH.LOGIN.replace('/login/','')}/otp/request/`, {
+      const response = await fetch(API_ENDPOINTS.AUTH.OTP_REQUEST, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -191,7 +191,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     setError('');
 
     try {
-      const response = await fetch(API_ENDPOINTS.AUTH.OTP_VERIFY || `${API_ENDPOINTS.AUTH.LOGIN.replace('/login/','')}/otp/verify/`, {
+      const response = await fetch(API_ENDPOINTS.AUTH.OTP_VERIFY, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

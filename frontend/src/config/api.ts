@@ -9,6 +9,8 @@ export const API_ENDPOINTS = {
     LOGOUT: `${API_BASE_URL}/auth/logout/`,
     REFRESH: `${API_BASE_URL}/auth/refresh/`,
     PROFILE: `${API_BASE_URL}/auth/profile/`,
+    OTP_REQUEST: `${API_BASE_URL}/auth/otp/request/`,
+    OTP_VERIFY: `${API_BASE_URL}/auth/otp/verify/`,
   },
   // Incidentes
   INCIDENTS: `${API_BASE_URL}/incidents/`,

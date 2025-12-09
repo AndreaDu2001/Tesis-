@@ -1,32 +1,22 @@
 #!/bin/bash
+set -euo pipefail
 
-# Esperar a que la base de datos esté disponible
-echo "Esperando a que la base de datos esté disponible..."
-while ! python -c "import psycopg2; psycopg2.connect(host='db', port=5432, user='postgres', password='postgres123', dbname='residuos_latacunga')" 2>/dev/null; do
-  sleep 1
-done
-echo "Base de datos disponible!"
+# Entrypoint simplificado: usa DATABASE_URL configurado por el entorno
+cd /app/backend
 
-# Ejecutar migraciones
-echo "Ejecutando migraciones..."
+echo "Iniciando entrypoint..."
+
+echo "Aplicando migraciones..."
 python manage.py migrate --noinput
 
-# Crear superusuario si no existe
-echo "Creando superusuario..."
-python manage.py shell -c "
-from django.contrib.auth import get_user_model
-User = get_user_model()
-if not User.objects.filter(email='admin@residuos.com').exists():
-    User.objects.create_superuser('admin@residuos.com', 'admin123')
-    print('Superusuario creado')
-else:
-    print('Superusuario ya existe')
-"
+echo "Omitiendo creación automática de superusuario en entrypoint"
 
-# Colectar archivos estáticos
 echo "Colectando archivos estáticos..."
 python manage.py collectstatic --noinput
 
-# Iniciar servidor
-echo "Iniciando servidor Django..."
-python manage.py runserver 0.0.0.0:8000
+PORT=${PORT:-8000}
+WORKERS=${WORKERS:-3}
+TIMEOUT=${TIMEOUT:-120}
+
+echo "Iniciando servidor Django sobre el puerto ${PORT} con ${WORKERS} workers (timeout ${TIMEOUT}s)..."
+gunicorn config.wsgi:application --bind 0.0.0.0:${PORT} --workers ${WORKERS} --timeout ${TIMEOUT}

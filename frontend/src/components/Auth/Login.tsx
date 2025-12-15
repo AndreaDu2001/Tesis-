@@ -16,9 +16,6 @@ import {
 } from '@mui/material';
 
 interface LoginProps {
-  onLoginSuccess: (user: any, tokens: any) => void;
-
-interface LoginProps {
   onLoginSuccess?: (user: any, tokens: any) => void;
 }
 

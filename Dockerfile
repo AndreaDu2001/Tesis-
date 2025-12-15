@@ -15,6 +15,12 @@ RUN npm install --prefer-offline --no-audit 2>&1 | tail -5
 # Copiar resto del código
 COPY frontend ./
 
+# Variables de entorno para build (CRÍTICO: deben estar en stage 1)
+ARG REACT_APP_API_URL=https://epagal-backend-latacunga.onrender.com
+ENV REACT_APP_API_URL=${REACT_APP_API_URL}
+ENV NODE_ENV=production
+ENV CI=false
+
 # Build optimizado
 RUN npm run build
 
@@ -31,8 +37,7 @@ COPY --from=frontend-build /app/frontend/build ./build
 
 EXPOSE 3000
 
-# Variables de entorno
-ENV REACT_APP_API_URL=https://epagal-backend-latacunga.onrender.com
+# Variables de entorno para runtime (informativas)
 ENV NODE_ENV=production
 
 # Healthcheck

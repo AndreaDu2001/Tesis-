@@ -113,70 +113,67 @@ function App() {
     setAnchorEl(null);
   };
 
-  if (!user) {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Login onLoginSuccess={handleLoginSuccess} />
-      </ThemeProvider>
-    );
-  }
-  
   return (
     <Router>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Box sx={{ flexGrow: 1 }}>
-          <AppBar position="static">
-            <Toolbar>
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                🗂️ Gestión de Residuos Latacunga
-              </Typography>
-              <Typography variant="body2" sx={{ mr: 2 }}>
-                {user.first_name} {user.last_name} ({user.role})
-              </Typography>
-              <IconButton
-                size="large"
-                edge="end"
-                color="inherit"
-                onClick={handleMenuClick}
-              >
-                <AccountCircle />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-              >
-                <MenuItem onClick={handleLogout}>
-                  <ExitToApp sx={{ mr: 1 }} />
-                  Cerrar Sesión
-                </MenuItem>
-              </Menu>
-            </Toolbar>
-          </AppBar>
-          
-          <Routes>
-            <Route path="/dashboard" element={<Dashboard userRole={user?.role || 'conductor'} />} />
-            <Route path="/rutas" element={<MisRutas />} />
-            <Route path="/rutas/:rutaId" element={<RutaDetalle />} />
-            <Route path="/incidents" element={<IncidentsPage />} />
-            <Route path="/tasks" element={<TasksPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/" element={<Navigate to="/rutas" replace />} />
-          </Routes>
-        </Box>
+
+        {!user ? (
+          <Login onLoginSuccess={handleLoginSuccess} />
+        ) : (
+          <Box sx={{ flexGrow: 1 }}>
+            <AppBar position="static">
+              <Toolbar>
+                <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                  🗂️ Gestión de Residuos Latacunga
+                </Typography>
+                <Typography variant="body2" sx={{ mr: 2 }}>
+                  {user.first_name} {user.last_name} ({user.role})
+                </Typography>
+                <IconButton
+                  size="large"
+                  edge="end"
+                  color="inherit"
+                  onClick={handleMenuClick}
+                >
+                  <AccountCircle />
+                </IconButton>
+                <Menu
+                  id="menu-appbar"
+                  anchorEl={anchorEl}
+                  anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  open={Boolean(anchorEl)}
+                  onClose={handleMenuClose}
+                >
+                  <MenuItem onClick={handleLogout}>
+                    <ExitToApp sx={{ mr: 1 }} />
+                    Cerrar Sesión
+                  </MenuItem>
+                </Menu>
+              </Toolbar>
+            </AppBar>
+            
+            <Routes>
+              <Route path="/dashboard" element={<Dashboard userRole={user?.role || 'conductor'} />} />
+              <Route path="/rutas" element={<MisRutas />} />
+              <Route path="/rutas/:rutaId" element={<RutaDetalle />} />
+              <Route path="/incidents" element={<IncidentsPage />} />
+              <Route path="/tasks" element={<TasksPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/" element={<Navigate to="/rutas" replace />} />
+            </Routes>
+          </Box>
+        )}
+
       </ThemeProvider>
     </Router>
   );

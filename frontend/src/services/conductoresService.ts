@@ -27,10 +27,35 @@ export const asignacionesPorRuta = async (rutaId: number) => {
   return data; // Lista de asignaciones
 };
 
+// Endpoints de administración
+export const listarConductores = async (params?: { estado?: string; zona?: string; skip?: number; limit?: number; }) => {
+  const query = new URLSearchParams();
+  if (params?.estado) query.append('estado', params.estado);
+  if (params?.zona) query.append('zona', params.zona);
+  if (params?.skip !== undefined) query.append('skip', String(params.skip));
+  if (params?.limit !== undefined) query.append('limit', String(params.limit));
+  const { data } = await api.get(`${API_BASE_URL}/conductores/?${query.toString()}`);
+  return data;
+};
+
+export const conductoresDisponibles = async (zona?: string) => {
+  const url = `${API_BASE_URL}/conductores/disponibles` + (zona ? `?zona=${zona}` : '');
+  const { data } = await api.get(url);
+  return data;
+};
+
+export const crearAsignacion = async (payload: { ruta_id: number; conductor_id: number; camion_tipo: string; camion_id: string; }) => {
+  const { data } = await api.post(`${API_BASE_URL}/conductores/asignaciones/`, payload);
+  return data;
+};
+
 export default {
   misRutasTodas,
   miRutaActual,
   iniciarRuta,
   finalizarRuta,
   asignacionesPorRuta,
+  listarConductores,
+  conductoresDisponibles,
+  crearAsignacion,
 };

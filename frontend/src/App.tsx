@@ -19,12 +19,12 @@ import {
 } from '@mui/icons-material';
 import Login from './components/Auth/Login';
 import { API_ENDPOINTS } from './config/api';
-import Dashboard from './components/Layout/Dashboard';
+import Dashboard from './components/Dashboard/Dashboard';
 import Sidebar from './components/Layout/Sidebar';
-import IncidentsPage from './components/Incidents/IncidentsPage';
-import RoutesPage from './components/Routes/RoutesPage';
+import GeneracionRutas from './components/Routes/GeneracionRutas';
 import MisRutas from './components/Routes/MisRutas';
 import RutaDetalle from './components/Routes/RutaDetalle';
+import IncidentsPage from './components/Incidents/IncidentsPage';
 import TasksPage from './components/Tasks/TasksPage';
 import NotificationsPage from './components/Notifications/NotificationsPage';
 import ReportsPage from './components/Reports/ReportsPage';
@@ -194,10 +194,10 @@ function App() {
               }}
             >
               <Routes>
-                <Route path="/dashboard" element={<Dashboard userRole={user?.role || 'conductor'} />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/rutas" element={<MisRutas />} />
                 <Route path="/rutas/:rutaId" element={<RutaDetalle />} />
-                <Route path="/routes" element={<RoutesPage />} />
+                <Route path="/routes" element={<GeneracionRutas />} />
                 <Route path="/incidents" element={<IncidentsPage />} />
                 <Route path="/tasks" element={<TasksPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />

@@ -36,6 +36,11 @@ export const estadisticasIncidencias = async () => {
   return data;
 };
 
+export const verificarUmbralZona = async (zona: string) => {
+  const { data } = await api.get(`${API_ENDPOINTS.INCIDENCIAS.LISTAR.replace('/incidencias/', `/incidencias/zona/${zona}/umbral`)}`);
+  return data; // { zona, suma_gravedad, umbral_configurado, debe_generar_ruta, incidencias_pendientes }
+};
+
 export default {
   listarIncidencias,
   crearIncidencia,
@@ -43,4 +48,5 @@ export default {
   actualizarIncidencia,
   eliminarIncidencia,
   estadisticasIncidencias,
+  verificarUmbralZona,
 };

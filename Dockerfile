@@ -1,31 +1,43 @@
-# Dockerfile para desplegar Backend en Render
-FROM python:3.11-slim
+# Dockerfile - Frontend React que consume backend de Andrea
+# El backend FastAPI de Andrea es la fuente de verdad en:
+# https://github.com/Andres09xZ/epagal-backend-latacunga-route-service
+
+FROM node:18-alpine AS frontend-build
+
+WORKDIR /app/frontend
+
+# Copiar package.json
+COPY frontend/package.json ./
+
+# Instalar dependencias
+RUN npm install --prefer-offline --no-audit 2>&1 | tail -5
+
+# Copiar resto del código
+COPY frontend ./
+
+# Build optimizado
+RUN npm run build
+
+# Stage 2: Servir frontend
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    postgresql-client \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Instalar 'serve' para servir estáticos
+RUN npm install -g serve
 
-# Copy requirements and install Python dependencies
-COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copiar build del frontend
+COPY --from=frontend-build /app/frontend/build ./build
 
-# Copy application code
-COPY backend ./backend
-COPY database ./database
+EXPOSE 3000
 
-# Create necessary directories
-RUN mkdir -p /app/backend/logs /app/backend/media
+# Variables de entorno
+ENV REACT_APP_API_URL=https://epagal-backend-latacunga.onrender.com
+ENV NODE_ENV=production
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV DJANGO_SETTINGS_MODULE=config.settings
-ENV PORT=8000
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})" || exit 1
 
-EXPOSE 8000
-
-# Run migrations and start server
-CMD ["sh", "-c", "cd /app/backend && python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:${PORT} --workers 4 --timeout 60 --access-logfile - --error-logfile -"]
+# Servir frontend
+CMD ["serve", "-s", "build", "-l", "3000"]

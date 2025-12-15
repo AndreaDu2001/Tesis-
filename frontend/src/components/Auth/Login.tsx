@@ -19,7 +19,8 @@ interface LoginProps {
   onLoginSuccess?: (user: any, tokens: any) => void;
 }
 
-export default function LoginComponent({ onLoginSuccess }: LoginProps = {}) {
+export default function LoginComponent(props: LoginProps = {}) {
+  const { onLoginSuccess } = props;
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

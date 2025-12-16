@@ -1,6 +1,6 @@
 import api from './apiService';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://tesis-c5yj.onrender.com';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://epagal-backend-routing-latest.onrender.com';
 
 export interface Notificacion {
   id: number;

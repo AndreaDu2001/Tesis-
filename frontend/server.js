@@ -9,31 +9,47 @@ const app = express();
 // Directorio de archivos estáticos (build de React)
 const buildPath = path.join(__dirname, 'build');
 
-// Middleware para servir archivos estáticos
-app.use(express.static(buildPath, {
-  maxAge: '1d',
-  etag: false,
-  // Asegurar que los archivos estáticos se cacheen apropiadamente
-}));
-
-// Middleware para registrar requests (debug)
+// Middleware para logging (PRIMERO)
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
 });
 
-// SPA Routing: Todas las rutas que no sean archivos estáticos van a index.html
-// Esto permite que React Router maneje el routing en el cliente
+// Middleware para servir archivos estáticos
+// Archivos con extensión (js, css, png, etc) se sirven directamente
+app.use(express.static(buildPath, {
+  maxAge: '1d',
+  etag: false,
+  setHeaders: (res, path) => {
+    // Cache largo para archivos con hash
+    if (path.match(/\.[0-9a-f]{8}\.(js|css)$/)) {
+      res.set('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+    // No cachear HTML
+    if (path.endsWith('.html')) {
+      res.set('Cache-Control', 'public, max-age=0, must-revalidate');
+    }
+  }
+}));
+
+// SPA Routing: Catch-all para rutas sin extensión
+// Redirige a index.html para que React Router maneje la navegación
 app.get('*', (req, res) => {
-  // Si es una solicitud de archivo estático (tiene extensión), no llega aquí
-  // Esta ruta solo se ejecuta para rutas sin extensión (ej: /login, /dashboard, etc)
-  res.sendFile(path.join(buildPath, 'index.html'));
+  // Enviar index.html para cualquier ruta que no sea un archivo estático
+  const indexPath = path.join(buildPath, 'index.html');
+  console.log(`Serving SPA: ${req.path} -> index.html`);
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error(`Error serving index.html: ${err}`);
+      res.status(500).send('Error loading application');
+    }
+  });
 });
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).send('Internal Server Error');
+  console.error(`[ERROR] ${err.message}`);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
 // Iniciar servidor

@@ -47,7 +47,8 @@ export default function LoginComponent(props: LoginProps = {}) {
         onLoginSuccess({ username }, { access_token });
       }
 
-      navigate('/rutas');
+      // Navegar al dashboard después del login exitoso
+      navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Error al iniciar sesión');
       console.error('Login error:', err);

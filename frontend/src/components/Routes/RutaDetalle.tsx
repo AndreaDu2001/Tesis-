@@ -44,7 +44,7 @@ interface RutaDetalles {
     duracion_estimada: string;
     costo_total_metros: number;
     fecha_generacion: string;
-  };
+  } | null;
   incidencias: Array<{
     id: number;
     tipo: string;
@@ -109,7 +109,7 @@ export default function RutaDetalle() {
     );
   }
 
-  if (error || !data) {
+  if (error || !data || !data.ruta) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Button
@@ -125,6 +125,8 @@ export default function RutaDetalle() {
     );
   }
 
+  const ruta = data.ruta;
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -135,7 +137,7 @@ export default function RutaDetalle() {
         >
           Volver
         </Button>
-        <Typography variant="h4">🗺️ Ruta #{data.ruta.id} - {data.ruta.zona}</Typography>
+        <Typography variant="h4">🗺️ Ruta #{ruta.id} - {ruta.zona}</Typography>
         <Button
           variant="outlined"
           startIcon={<RefreshIcon />}
@@ -199,14 +201,14 @@ export default function RutaDetalle() {
                 📋 Información de Ruta
               </Typography>
               <Divider sx={{ mb: 1 }} />
-              <Typography variant="body2"><strong>Zona:</strong> {data.ruta.zona}</Typography>
-              <Typography variant="body2"><strong>Estado:</strong> {data.ruta.estado}</Typography>
-              <Typography variant="body2"><strong>Gravedad Total:</strong> {data.ruta.suma_gravedad} pts</Typography>
-              <Typography variant="body2"><strong>Camiones:</strong> {data.ruta.camiones_usados}</Typography>
-              <Typography variant="body2"><strong>Duración:</strong> {data.ruta.duracion_estimada}</Typography>
-              <Typography variant="body2"><strong>Distancia:</strong> {(data.ruta.costo_total_metros / 1000).toFixed(2)} km</Typography>
+              <Typography variant="body2"><strong>Zona:</strong> {ruta.zona}</Typography>
+              <Typography variant="body2"><strong>Estado:</strong> {ruta.estado}</Typography>
+              <Typography variant="body2"><strong>Gravedad Total:</strong> {ruta.suma_gravedad} pts</Typography>
+              <Typography variant="body2"><strong>Camiones:</strong> {ruta.camiones_usados}</Typography>
+              <Typography variant="body2"><strong>Duración:</strong> {ruta.duracion_estimada}</Typography>
+              <Typography variant="body2"><strong>Distancia:</strong> {(ruta.costo_total_metros / 1000).toFixed(2)} km</Typography>
               <Typography variant="caption" color="textSecondary">
-                Generada: {new Date(data.ruta.fecha_generacion).toLocaleString('es-ES')}
+                Generada: {new Date(ruta.fecha_generacion).toLocaleString('es-ES')}
               </Typography>
             </CardContent>
           </Card>

@@ -24,25 +24,28 @@ ENV CI=false
 # Build optimizado
 RUN npm run build
 
-# Stage 2: Servir frontend
+# Stage 2: Servir frontend con Express (para SPA routing)
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Instalar 'serve' para servir estáticos
-RUN npm install -g serve
+# Instalar express como dependencia de producción
+RUN npm install express@^4.18.2
+
+# Copiar servidor Express personalizado
+COPY frontend/server.js ./server.js
 
 # Copiar build del frontend
 COPY --from=frontend-build /app/frontend/build ./build
 
 EXPOSE 3000
 
-# Variables de entorno para runtime (informativas)
+# Variables de entorno para runtime
 ENV NODE_ENV=production
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:3000', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})" || exit 1
 
-# Servir frontend
-CMD ["serve", "-s", "build", "-l", "3000"]
+# Servir frontend con Express (maneja SPA routing correctamente)
+CMD ["node", "server.js"]

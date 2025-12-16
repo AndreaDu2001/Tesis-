@@ -1,6 +1,5 @@
 import api from './apiService';
-
-const API_BASE_URL = 'https://epagal-backend-routing-latest.onrender.com';
+import { API_BASE_URL } from '../config/api';
 
 export interface Notificacion {
   id: number;

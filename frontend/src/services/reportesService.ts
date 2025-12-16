@@ -1,6 +1,5 @@
 import api from './apiService';
-
-const API_BASE_URL = 'https://epagal-backend-routing-latest.onrender.com';
+import { API_BASE_URL } from '../config/api';
 
 export interface ReporteEstadisticas {
   periodo: string;
@@ -19,7 +18,7 @@ export const reporteEstadisticas = async (params?: { fecha_inicio?: string; fech
   // TODO: Cuando backend implemente endpoint específico, usar /api/reportes/estadisticas
   
   try {
-    const incidenciasRes = await api.get(`${API_BASE_URL}/api/incidencias/stats`);
+    const incidenciasRes = await api.get(`${API_BASE_URL}/incidencias/stats`);
     
     return {
       periodo: params?.fecha_inicio ? `${params.fecha_inicio} - ${params.fecha_fin}` : 'Histórico',

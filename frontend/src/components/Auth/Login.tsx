@@ -33,21 +33,17 @@ export default function LoginComponent(props: LoginProps = {}) {
       setLoading(true);
       setError(null);
 
-      // Algunos backends FastAPI usan OAuth2 form-data. Enviamos ambos campos (identifier/username)
-      // en formato application/x-www-form-urlencoded para máxima compatibilidad.
-      const form = new URLSearchParams();
+      // Enviar como JSON con ambos campos (identifier y username) para compatibilidad
       const ident = username.trim();
-      form.append('identifier', ident);
-      form.append('username', ident);
-      form.append('password', password);
+      const payload = {
+        identifier: ident,
+        username: ident,
+        password,
+      };
 
-      const response = await api.post(
-        API_ENDPOINTS.AUTH.LOGIN,
-        form,
-        {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        }
-      );
+      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, payload, {
+        headers: { 'Content-Type': 'application/json' },
+      });
 
       const { access_token, access, user } = response.data;
       const token = access_token || access;

@@ -77,32 +77,19 @@ export default function MisRutas() {
   };
 
   const handleIniciarRuta = async (rutaId: number) => {
-    try {
-      await conductoresService.iniciarRuta(rutaId);
-      await cargarRutas();
-      alert('✅ Ruta iniciada exitosamente');
-    } catch (err: any) {
-      alert('❌ Error al iniciar ruta: ' + (err?.response?.data?.detail || err.message));
-    }
+    console.log('Las rutas se inician automáticamente en el backend Go cuando inicia un turno');
+    alert('Las rutas se generan y controlan automáticamente en el sistema');
   };
 
   const handleFinalizarRuta = (rutaId: number) => {
-    setFinalizandoRutaId(rutaId);
-    setDialogOpen(true);
+    console.log('Las rutas se finalizan automáticamente en el backend Go');
+    alert('El sistema controla el ciclo de vida de las rutas automáticamente');
   };
 
   const confirmarFinalizarRuta = async () => {
-    if (!finalizandoRutaId) return;
-    try {
-      await conductoresService.finalizarRuta(finalizandoRutaId, notasRuta);
-      await cargarRutas();
-      alert('✅ Ruta finalizada exitosamente');
-      setDialogOpen(false);
-      setNotasRuta('');
-      setFinalizandoRutaId(null);
-    } catch (err: any) {
-      alert('❌ Error al finalizar ruta: ' + (err?.response?.data?.detail || err.message));
-    }
+    setDialogOpen(false);
+    setNotasRuta('');
+    setFinalizandoRutaId(null);
   };
 
   const handleVerMapa = (rutaId: number) => {

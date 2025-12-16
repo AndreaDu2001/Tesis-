@@ -125,88 +125,104 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
 
-        {!user ? (
-          <Login onLoginSuccess={handleLoginSuccess} />
-        ) : (
-          <Box sx={{ display: 'flex' }}>
-            <AppBar
-              position="fixed"
-              sx={{
-                width: { sm: `calc(100% - 240px)` },
-                ml: { sm: `240px` },
-              }}
-            >
-              <Toolbar>
-                <IconButton
-                  color="inherit"
-                  edge="start"
-                  onClick={handleDrawerToggle}
-                  sx={{ mr: 2, display: { sm: 'none' } }}
-                >
-                  <MenuIcon />
-                </IconButton>
-                <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                  🗂️ Gestión de Residuos Latacunga
-                </Typography>
-                <Typography variant="body2" sx={{ mr: 2 }}>
-                  {user.first_name} {user.last_name} ({user.role})
-                </Typography>
-                <IconButton
-                  size="large"
-                  edge="end"
-                  color="inherit"
-                  onClick={handleMenuClick}
-                >
-                  <AccountCircle />
-                </IconButton>
-                <Menu
-                  id="menu-appbar"
-                  anchorEl={anchorEl}
-                  anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  open={Boolean(anchorEl)}
-                  onClose={handleMenuClose}
-                >
-                  <MenuItem onClick={handleLogout}>
-                    <ExitToApp sx={{ mr: 1 }} />
-                    Cerrar Sesión
-                  </MenuItem>
-                </Menu>
-              </Toolbar>
-            </AppBar>
-            
-            <Sidebar mobileOpen={mobileOpen} onDrawerToggle={handleDrawerToggle} />
-            
-            <Box
-              component="main"
-              sx={{
-                flexGrow: 1,
-                p: 3,
-                width: { sm: `calc(100% - 240px)` },
-                mt: 8,
-              }}
-            >
-              <Routes>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/rutas" element={<MisRutas />} />
-                <Route path="/rutas/:rutaId" element={<RutaDetalle />} />
-                <Route path="/routes" element={<GeneracionRutas />} />
-                <Route path="/incidents" element={<IncidentsPage />} />
-                <Route path="/tasks" element={<TasksPage />} />
-                <Route path="/notifications" element={<NotificationsPage />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
-            </Box>
-          </Box>
-        )}
+        <Routes>
+          {/* Ruta pública de login */}
+          <Route 
+            path="/login" 
+            element={
+              user ? <Navigate to="/dashboard" replace /> : <Login onLoginSuccess={handleLoginSuccess} />
+            } 
+          />
+          
+          {/* Rutas protegidas */}
+          <Route
+            path="/*"
+            element={
+              !user ? (
+                <Navigate to="/login" replace />
+              ) : (
+                <Box sx={{ display: 'flex' }}>
+                  <AppBar
+                    position="fixed"
+                    sx={{
+                      width: { sm: `calc(100% - 240px)` },
+                      ml: { sm: `240px` },
+                    }}
+                  >
+                    <Toolbar>
+                      <IconButton
+                        color="inherit"
+                        edge="start"
+                        onClick={handleDrawerToggle}
+                        sx={{ mr: 2, display: { sm: 'none' } }}
+                      >
+                        <MenuIcon />
+                      </IconButton>
+                      <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                        🗂️ Gestión de Residuos Latacunga
+                      </Typography>
+                      <Typography variant="body2" sx={{ mr: 2 }}>
+                        {user.first_name} {user.last_name} ({user.role})
+                      </Typography>
+                      <IconButton
+                        size="large"
+                        edge="end"
+                        color="inherit"
+                        onClick={handleMenuClick}
+                      >
+                        <AccountCircle />
+                      </IconButton>
+                      <Menu
+                        id="menu-appbar"
+                        anchorEl={anchorEl}
+                        anchorOrigin={{
+                          vertical: 'top',
+                          horizontal: 'right',
+                        }}
+                        keepMounted
+                        transformOrigin={{
+                          vertical: 'top',
+                          horizontal: 'right',
+                        }}
+                        open={Boolean(anchorEl)}
+                        onClose={handleMenuClose}
+                      >
+                        <MenuItem onClick={handleLogout}>
+                          <ExitToApp sx={{ mr: 1 }} />
+                          Cerrar Sesión
+                        </MenuItem>
+                      </Menu>
+                    </Toolbar>
+                  </AppBar>
+                  
+                  <Sidebar mobileOpen={mobileOpen} onDrawerToggle={handleDrawerToggle} />
+                  
+                  <Box
+                    component="main"
+                    sx={{
+                      flexGrow: 1,
+                      p: 3,
+                      width: { sm: `calc(100% - 240px)` },
+                      mt: 8,
+                    }}
+                  >
+                    <Routes>
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/rutas" element={<MisRutas />} />
+                      <Route path="/rutas/:rutaId" element={<RutaDetalle />} />
+                      <Route path="/routes" element={<GeneracionRutas />} />
+                      <Route path="/incidents" element={<IncidentsPage />} />
+                      <Route path="/tasks" element={<TasksPage />} />
+                      <Route path="/notifications" element={<NotificationsPage />} />
+                      <Route path="/reports" element={<ReportsPage />} />
+                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    </Routes>
+                  </Box>
+                </Box>
+              )
+            }
+          />
+        </Routes>
 
       </ThemeProvider>
     </Router>

@@ -2,18 +2,21 @@
 // Cada servicio está en su propio puerto
 // Backend externo: https://github.com/Andres09xZ/latacunga_clean_app.git
 
-// URLs de servicios (producción en Render/local)
-const AUTH_SERVICE = 'https://epagal-backend-routing-latest.onrender.com'; // Puerto 8080 local
-const FLEET_SERVICE = 'https://epagal-backend-routing-latest.onrender.com'; // Puerto 8081 local
-const INCIDENT_SERVICE = 'https://epagal-backend-routing-latest.onrender.com'; // Puerto 8082 local
-const OPERATIONS_SERVICE = 'https://epagal-backend-routing-latest.onrender.com'; // Puerto 8085 local
+// URLs de servicios (producción en Render/local). Permite override via entorno para desarrollo.
+const API_BASE = process.env.REACT_APP_API_BASE || 'https://epagal-backend-routing-latest.onrender.com';
+const API_PREFIX = process.env.REACT_APP_API_PREFIX || '/api/v1';
 
 // NOTA: En Render, todos los servicios están detrás de un proxy/load balancer en la misma URL
-// En desarrollo local, usar ports: 8080, 8081, 8082, 8083, 8085
+// En desarrollo local, puedes usar REACT_APP_API_BASE=http://localhost:8000 y REACT_APP_API_PREFIX=/api
 
-const API_V1 = '/api/v1';
+const AUTH_SERVICE = API_BASE; // Puerto 8080 local
+const FLEET_SERVICE = API_BASE; // Puerto 8081 local
+const INCIDENT_SERVICE = API_BASE; // Puerto 8082 local
+const OPERATIONS_SERVICE = API_BASE; // Puerto 8085 local
 
-export const API_BASE_URL = 'https://epagal-backend-routing-latest.onrender.com/api/v1';
+const API_V1 = API_PREFIX;
+
+export const API_BASE_URL = `${API_BASE}${API_PREFIX}`;
 
 export const API_ENDPOINTS = {
   // ==================== AUTENTICACIÓN (Auth Service: 8080) ====================

@@ -33,18 +33,22 @@ export default function LoginComponent(props: LoginProps = {}) {
       setLoading(true);
       setError(null);
 
+      // El backend FastAPI espera 'identifier' no 'username'
       const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, {
-        username,
-        password,
+        identifier: username,  // Campo del backend
+        password: password,
       });
 
-      const { access_token } = response.data;
-      localStorage.setItem('access_token', access_token);
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('user', username);
+      const { access_token, access, user } = response.data;
+      const token = access_token || access;
+      
+      // Guardar token y datos del usuario
+      localStorage.setItem('access_token', token);
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user || { username }));
 
       if (onLoginSuccess) {
-        onLoginSuccess({ username }, { access_token });
+        onLoginSuccess(user || { username }, { access_token: token });
       }
 
       // Navegar al dashboard después del login exitoso

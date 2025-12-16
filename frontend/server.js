@@ -37,11 +37,21 @@ app.use(express.static(buildPath, {
 app.get('*', (req, res) => {
   // Enviar index.html para cualquier ruta que no sea un archivo estático
   const indexPath = path.join(buildPath, 'index.html');
-  console.log(`Serving SPA: ${req.path} -> index.html`);
+  console.log(`[SPA] Serving: ${req.path} -> index.html`);
+  
   res.sendFile(indexPath, (err) => {
     if (err) {
-      console.error(`Error serving index.html: ${err}`);
-      res.status(500).send('Error loading application');
+      console.error(`[ERROR] Failed to serve index.html: ${err.message}`);
+      // Intentar servir el archivo manualmente
+      try {
+        const fs = require('fs');
+        const html = fs.readFileSync(indexPath, 'utf8');
+        res.set('Content-Type', 'text/html');
+        res.send(html);
+      } catch (readErr) {
+        console.error(`[CRITICAL] Could not read index.html: ${readErr.message}`);
+        res.status(500).send('Could not load application');
+      }
     }
   });
 });

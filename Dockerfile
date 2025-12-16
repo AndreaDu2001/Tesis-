@@ -8,9 +8,10 @@ WORKDIR /app/frontend
 
 # Copiar package.json
 COPY frontend/package.json ./
+COPY frontend/package-lock.json ./
 
 # Instalar dependencias
-RUN npm install --prefer-offline --no-audit 2>&1 | tail -5
+RUN npm ci --legacy-peer-deps 2>&1 | tail -10
 
 # Copiar resto del código
 COPY frontend ./

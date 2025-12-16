@@ -35,7 +35,7 @@ export default function LoginComponent(props: LoginProps = {}) {
 
       // El backend FastAPI espera 'identifier' no 'username'
       const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, {
-        identifier: username,  // Campo del backend
+        identifier: username.trim(),
         password: password,
       });
 
@@ -54,8 +54,20 @@ export default function LoginComponent(props: LoginProps = {}) {
       // Navegar al dashboard después del login exitoso
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Error al iniciar sesión');
-      console.error('Login error:', err);
+      // Normalizar mensajes de error (FastAPI envía detail con arrays)
+      const detail = err?.response?.data?.detail;
+      let message = 'Error al iniciar sesión';
+
+      if (Array.isArray(detail)) {
+        message = detail
+          .map((d: any) => d?.msg || d?.detail || JSON.stringify(d))
+          .join(' | ');
+      } else if (typeof detail === 'string') {
+        message = detail;
+      }
+
+      setError(message);
+      console.error('Login error:', message, err);
     } finally {
       setLoading(false);
     }

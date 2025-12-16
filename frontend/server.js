@@ -34,15 +34,14 @@ app.use(express.static(buildPath, {
 
 // SPA Routing: Catch-all para rutas sin extensión
 // Redirige a index.html para que React Router maneje la navegación
+// Las llamadas a /api/** van directamente a través de axios al backend (no pasan por aquí)
 app.get('*', (req, res) => {
-  // Enviar index.html para cualquier ruta que no sea un archivo estático
   const indexPath = path.join(buildPath, 'index.html');
   console.log(`[SPA] Serving: ${req.path} -> index.html`);
   
   res.sendFile(indexPath, (err) => {
     if (err) {
       console.error(`[ERROR] Failed to serve index.html: ${err.message}`);
-      // Intentar servir el archivo manualmente
       try {
         const fs = require('fs');
         const html = fs.readFileSync(indexPath, 'utf8');

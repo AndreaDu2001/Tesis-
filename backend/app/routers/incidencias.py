@@ -1,44 +1,141 @@
 """
 Router de incidencias para FastAPI
 """
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
+from datetime import datetime
 from app.database import get_db
+from app.models import Incidencia
 
 router = APIRouter(prefix="/incidencias", tags=["incidencias"])
 
 
 class IncidenciaResponse(BaseModel):
-    """Modelo de incidencia"""
     id: int
-    titulo: str
+    tipo: str
+    gravedad: int
     descripcion: str
+    foto_url: Optional[str] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+    zona: str
     estado: str
+    ventana_inicio: Optional[datetime] = None
+    ventana_fin: Optional[datetime] = None
+    reportado_en: datetime
+    usuario_id: int
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
 
 
-@router.get("", response_model=List[IncidenciaResponse])
-async def get_incidencias(db: Session = Depends(get_db)):
-    """Obtener lista de incidencias"""
-    # TODO: Implementar lógica real
-    return []
+class IncidenciaCreate(BaseModel):
+    tipo: str
+    gravedad: int = 1
+    descripcion: str
+    foto_url: Optional[str] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+    zona: str
+    usuario_id: int = 1  # Default para testing
+
+
+@router.get("/", response_model=List[IncidenciaResponse])
+async def listar_incidencias(
+    estado: Optional[str] = None,
+    zona: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    """Listar todas las incidencias"""
+    query = db.query(Incidencia)
+    
+    if estado:
+        query = query.filter(Incidencia.estado == estado)
+    if zona:
+        query = query.filter(Incidencia.zona == zona)
+    
+    return query.offset(skip).limit(limit).all()
+
+
+@router.post("/", response_model=IncidenciaResponse, status_code=status.HTTP_201_CREATED)
+async def crear_incidencia(
+    incidencia: IncidenciaCreate,
+    db: Session = Depends(get_db)
+):
+    """Crear nueva incidencia"""
+    new_incident = Incidencia(
+        tipo=incidencia.tipo,
+        gravedad=incidencia.gravedad,
+        descripcion=incidencia.descripcion,
+        foto_url=incidencia.foto_url,
+        lat=incidencia.lat,
+        lon=incidencia.lon,
+        zona=incidencia.zona,
+        usuario_id=incidencia.usuario_id,
+        estado="abierta",
+        reportado_en=datetime.utcnow()
+    )
+    db.add(new_incident)
+    db.commit()
+    db.refresh(new_incident)
+    return new_incident
 
 
 @router.get("/{incidencia_id}", response_model=IncidenciaResponse)
-async def get_incidencia(incidencia_id: int, db: Session = Depends(get_db)):
+async def obtener_incidencia(incidencia_id: int, db: Session = Depends(get_db)):
     """Obtener una incidencia específica"""
-    # TODO: Implementar lógica real
-    return {
-        "id": incidencia_id,
-        "titulo": "Reporte de basura",
-        "descripcion": "Calle contaminada",
-        "estado": "abierta"
-    }
-
-
-@router.post("", response_model=IncidenciaResponse)
-async def create_incidencia(incidencia: dict, db: Session = Depends(get_db)):
-    """Crear una nueva incidencia"""
-    # TODO: Implementar lógica real
+    incidencia = db.query(Incidencia).filter(Incidencia.id == incidencia_id).first()
+    if not incidencia:
+        raise HTTPException(status_code=404, detail="Incidencia no encontrada")
     return incidencia
+
+
+@router.patch("/{incidencia_id}", response_model=IncidenciaResponse)
+async def actualizar_incidencia(
+    incidencia_id: int,
+    payload: dict,
+    db: Session = Depends(get_db)
+):
+    """Actualizar una incidencia"""
+    incidencia = db.query(Incidencia).filter(Incidencia.id == incidencia_id).first()
+    if not incidencia:
+        raise HTTPException(status_code=404, detail="Incidencia no encontrada")
+    
+    for key, value in payload.items():
+        if hasattr(incidencia, key):
+            setattr(incidencia, key, value)
+    
+    db.commit()
+    db.refresh(incidencia)
+    return incidencia
+
+
+@router.delete("/{incidencia_id}")
+async def eliminar_incidencia(incidencia_id: int, db: Session = Depends(get_db)):
+    """Eliminar una incidencia"""
+    incidencia = db.query(Incidencia).filter(Incidencia.id == incidencia_id).first()
+    if not incidencia:
+        raise HTTPException(status_code=404, detail="Incidencia no encontrada")
+    
+    db.delete(incidencia)
+    db.commit()
+    return {"mensaje": "Incidencia eliminada"}
+
+
+@router.get("/stats", response_model=dict)
+async def estadisticas(db: Session = Depends(get_db)):
+    """Estadísticas de incidencias"""
+    total = db.query(Incidencia).count()
+    por_estado = {}
+    por_zona = {}
+    
+    return {
+        "total": total,
+        "por_estado": por_estado,
+        "por_zona": por_zona,
+    }

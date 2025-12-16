@@ -8,15 +8,12 @@ from app.database import Base
 
 
 class User(Base):
-    """Modelo de usuario"""
+    """Modelo de usuario (con autenticación)"""
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    username = Column(String, unique=True, index=True, nullable=True)
-    first_name = Column(String, nullable=True)
-    last_name = Column(String, nullable=True)
-    phone = Column(String, unique=True, index=True, nullable=True)
+    username = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
@@ -33,12 +30,16 @@ class Conductor(Base):
     __tablename__ = "conductores"
 
     id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String, nullable=False)
+    cedula = Column(String, unique=True, index=True, nullable=False)
+    nombre_completo = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     telefono = Column(String, nullable=False)
-    licencia = Column(String, unique=True, nullable=False)
-    estado = Column(String, default="activo")
+    username = Column(String, unique=True, index=True, nullable=False)
+    licencia_tipo = Column(String, nullable=False)  # C, D, E, etc
+    zona_preferida = Column(String, nullable=True)
+    estado = Column(String, default="disponible")  # disponible, ocupado, descansa
     usuario_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    fecha_contratacion = Column(DateTime, default=datetime.utcnow)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     usuario = relationship("User", back_populates="conductores")
@@ -80,17 +81,21 @@ class Ruta(Base):
 
 
 class Incidencia(Base):
-    """Modelo de incidencia/reporte"""
+    """Modelo de incidencia/reporte ciudadano"""
     __tablename__ = "incidencias"
 
     id = Column(Integer, primary_key=True, index=True)
-    titulo = Column(String, nullable=False)
+    tipo = Column(String, nullable=False)  # basura, daño, otro, etc
+    gravedad = Column(Integer, default=1)  # 1-5
     descripcion = Column(String, nullable=False)
-    ubicacion = Column(String, nullable=True)
-    latitud = Column(Float, nullable=True)
-    longitud = Column(Float, nullable=True)
-    estado = Column(String, default="abierta")
-    prioridad = Column(String, default="media")
+    foto_url = Column(String, nullable=True)
+    lat = Column(Float, nullable=True)
+    lon = Column(Float, nullable=True)
+    zona = Column(String, nullable=False)
+    estado = Column(String, default="abierta")  # abierta, asignada, completada, cancelada
+    ventana_inicio = Column(DateTime, nullable=True)
+    ventana_fin = Column(DateTime, nullable=True)
+    reportado_en = Column(DateTime, default=datetime.utcnow)
     usuario_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

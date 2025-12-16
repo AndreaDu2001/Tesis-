@@ -77,31 +77,20 @@ async def login(credentials: LoginRequest, db: Session = Depends(get_db)):
         if not credentials.identifier or not credentials.password:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=[{
-                    "type": "value_error",
-                    "loc": ["body", "identifier"],
-                    "msg": "identifier y password son requeridos"
-                }]
+                detail="identifier y password son requeridos"
             )
         
-        # Buscar usuario por email o teléfono
-        user = db.query(User).filter(
-            (User.email == credentials.identifier) |
-            (User.phone == credentials.identifier)
-        ).first()
+        # Buscar usuario por email
+        user = db.query(User).filter(User.email == credentials.identifier).first()
         
         if not user:
             # Crear usuario de prueba si no existe
-            # (En producción, devolver error de credentials inválidas)
             password_hash = hash_password(credentials.password)
             user = User(
                 email=credentials.identifier,
                 username=credentials.username or credentials.identifier,
-                phone=credentials.identifier if credentials.identifier.isdigit() else None,
                 password_hash=password_hash,
                 is_active=True,
-                first_name="Usuario",
-                last_name="Test"
             )
             db.add(user)
             db.commit()
@@ -121,8 +110,6 @@ async def login(credentials: LoginRequest, db: Session = Depends(get_db)):
                 "id": user.id,
                 "email": user.email,
                 "username": user.username,
-                "first_name": user.first_name,
-                "last_name": user.last_name
             }
         )
         
@@ -131,7 +118,7 @@ async def login(credentials: LoginRequest, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error interno del servidor: {str(e)}"
+            detail=f"Error interno: {str(e)}"
         )
 
 

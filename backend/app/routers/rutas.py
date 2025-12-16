@@ -1,44 +1,102 @@
 """
 Router de rutas para FastAPI
 """
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
+from datetime import datetime
 from app.database import get_db
+from app.models import Ruta
 
 router = APIRouter(prefix="/rutas", tags=["rutas"])
 
 
 class RutaResponse(BaseModel):
-    """Modelo de ruta"""
     id: int
     nombre: str
-    descripcion: str
-    distancia: float
+    descripcion: Optional[str] = None
+    distancia_km: float
+    tiempo_estimado_minutos: int
+    estado: str
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
 
 
-@router.get("", response_model=List[RutaResponse])
-async def get_rutas(db: Session = Depends(get_db)):
-    """Obtener lista de rutas"""
-    # TODO: Implementar lógica real
-    return []
+class RutaCreate(BaseModel):
+    nombre: str
+    descripcion: Optional[str] = None
+    distancia_km: float
+    tiempo_estimado_minutos: int
+
+
+@router.get("/", response_model=List[RutaResponse])
+async def listar_rutas(db: Session = Depends(get_db)):
+    """Listar todas las rutas"""
+    return db.query(Ruta).all()
+
+
+@router.post("/", response_model=RutaResponse, status_code=status.HTTP_201_CREATED)
+async def crear_ruta(ruta: RutaCreate, db: Session = Depends(get_db)):
+    """Crear nueva ruta"""
+    new_ruta = Ruta(
+        nombre=ruta.nombre,
+        descripcion=ruta.descripcion,
+        distancia_km=ruta.distancia_km,
+        tiempo_estimado_minutos=ruta.tiempo_estimado_minutos,
+        estado="activa"
+    )
+    db.add(new_ruta)
+    db.commit()
+    db.refresh(new_ruta)
+    return new_ruta
 
 
 @router.get("/{ruta_id}", response_model=RutaResponse)
-async def get_ruta(ruta_id: int, db: Session = Depends(get_db)):
+async def obtener_ruta(ruta_id: int, db: Session = Depends(get_db)):
     """Obtener una ruta específica"""
-    # TODO: Implementar lógica real
-    return {
-        "id": ruta_id,
-        "nombre": "Ruta Centro",
-        "descripcion": "Ruta del centro histórico",
-        "distancia": 12.5
-    }
-
-
-@router.post("", response_model=RutaResponse)
-async def create_ruta(ruta: dict, db: Session = Depends(get_db)):
-    """Crear una nueva ruta"""
-    # TODO: Implementar lógica real
+    ruta = db.query(Ruta).filter(Ruta.id == ruta_id).first()
+    if not ruta:
+        raise HTTPException(status_code=404, detail="Ruta no encontrada")
     return ruta
+
+
+@router.patch("/{ruta_id}", response_model=RutaResponse)
+async def actualizar_ruta(
+    ruta_id: int,
+    payload: dict,
+    db: Session = Depends(get_db)
+):
+    """Actualizar una ruta"""
+    ruta = db.query(Ruta).filter(Ruta.id == ruta_id).first()
+    if not ruta:
+        raise HTTPException(status_code=404, detail="Ruta no encontrada")
+    
+    for key, value in payload.items():
+        if hasattr(ruta, key) and key != "id":
+            setattr(ruta, key, value)
+    
+    db.commit()
+    db.refresh(ruta)
+    return ruta
+
+
+@router.delete("/{ruta_id}")
+async def eliminar_ruta(ruta_id: int, db: Session = Depends(get_db)):
+    """Eliminar una ruta"""
+    ruta = db.query(Ruta).filter(Ruta.id == ruta_id).first()
+    if not ruta:
+        raise HTTPException(status_code=404, detail="Ruta no encontrada")
+    
+    db.delete(ruta)
+    db.commit()
+    return {"mensaje": "Ruta eliminada"}
+
+
+@router.get("/zona/{zona}", response_model=List[RutaResponse])
+async def obtener_rutas_por_zona(zona: str, db: Session = Depends(get_db)):
+    """Obtener rutas por zona"""
+    # TODO: Cuando Ruta tenga campo 'zona'
+    return db.query(Ruta).all()

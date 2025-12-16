@@ -1,5 +1,5 @@
 import api from './apiService';
-import { API_BASE_URL } from '../config/api';
+import { API_ENDPOINTS } from '../config/api';
 
 export interface Notificacion {
   id: number;
@@ -12,24 +12,42 @@ export interface Notificacion {
   datos_extra?: any;
 }
 
-// Funciones simuladas hasta que existan en el backend
 export const listarNotificaciones = async (params?: { leida?: boolean; limit?: number; }) => {
-  // TODO: Implementar GET /api/notificaciones/
-  return {
-    total: 0,
-    no_leidas: 0,
-    notificaciones: [] as Notificacion[],
-  };
+  try {
+    const { data } = await api.get(API_ENDPOINTS.NOTIFICATIONS.LISTAR);
+    return {
+      total: data.total || 0,
+      no_leidas: data.unread || 0,
+      notificaciones: data.notifications || [],
+    };
+  } catch (error) {
+    console.error('Error listando notificaciones:', error);
+    return {
+      total: 0,
+      no_leidas: 0,
+      notificaciones: [] as Notificacion[],
+    };
+  }
 };
 
 export const marcarComoLeida = async (id: number) => {
-  // TODO: Implementar PATCH /api/notificaciones/{id}/leer
-  return { id, leida: true };
+  try {
+    const { data } = await api.patch(API_ENDPOINTS.NOTIFICATIONS.LEER(id));
+    return data;
+  } catch (error) {
+    console.error('Error marcando notificación como leída:', error);
+    throw error;
+  }
 };
 
 export const marcarTodasLeidas = async () => {
-  // TODO: Implementar POST /api/notificaciones/leer-todas
-  return { mensaje: 'Todas las notificaciones marcadas como leídas' };
+  try {
+    const { data } = await api.post(API_ENDPOINTS.NOTIFICATIONS.LEER_TODAS);
+    return data;
+  } catch (error) {
+    console.error('Error marcando todas las notificaciones como leídas:', error);
+    throw error;
+  }
 };
 
 export default {

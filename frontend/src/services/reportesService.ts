@@ -1,5 +1,5 @@
 import api from './apiService';
-import { API_BASE_URL } from '../config/api';
+import { API_ENDPOINTS } from '../config/api';
 
 export interface ReporteEstadisticas {
   periodo: string;
@@ -12,17 +12,17 @@ export interface ReporteEstadisticas {
   eficiencia_conductores: any[];
 }
 
-// Funciones de reportes (basadas en datos existentes)
 export const reporteEstadisticas = async (params?: { fecha_inicio?: string; fecha_fin?: string; zona?: string; }) => {
-  // Combinar datos de incidencias y rutas para generar reporte
-  // TODO: Cuando backend implemente endpoint específico, usar /api/reportes/estadisticas
-  
   try {
-    const incidenciasRes = await api.get(`${API_BASE_URL}/incidencias/stats`);
+    const queryParams = new URLSearchParams();
+    if (params?.fecha_inicio) queryParams.append('start_date', params.fecha_inicio);
+    if (params?.fecha_fin) queryParams.append('end_date', params.fecha_fin);
+    
+    const { data } = await api.get(`${API_ENDPOINTS.REPORTS.ESTADISTICAS}?${queryParams.toString()}`);
     
     return {
       periodo: params?.fecha_inicio ? `${params.fecha_inicio} - ${params.fecha_fin}` : 'Histórico',
-      ...incidenciasRes.data,
+      ...data,
     } as ReporteEstadisticas;
   } catch (error) {
     console.error('Error generando reporte:', error);
@@ -40,9 +40,16 @@ export const reporteEstadisticas = async (params?: { fecha_inicio?: string; fech
 };
 
 export const exportarReporte = async (formato: 'pdf' | 'excel', params?: any) => {
-  // TODO: Implementar POST /api/reportes/exportar
-  console.log(`Exportar reporte en formato ${formato}`, params);
-  return { url: '#', mensaje: 'Función no implementada aún' };
+  try {
+    const { data } = await api.post(
+      `${API_ENDPOINTS.REPORTS.EXPORTAR}?format=${formato}`,
+      params || {}
+    );
+    return data;
+  } catch (error) {
+    console.error(`Error exportando reporte en ${formato}:`, error);
+    return { url: '#', mensaje: 'Error exportando reporte' };
+  }
 };
 
 export default {

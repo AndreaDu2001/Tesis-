@@ -1,5 +1,5 @@
 import api from './apiService';
-import { API_BASE_URL } from '../config/api';
+import { API_ENDPOINTS } from '../config/api';
 
 export interface Tarea {
   id: number;
@@ -7,35 +7,57 @@ export interface Tarea {
   descripcion: string;
   conductor_id?: number;
   ruta_id?: number;
-  estado: 'pendiente' | 'en_progreso' | 'completada' | 'cancelada';
+  estado: 'pending' | 'en_progreso' | 'completed' | 'cancelada';
   prioridad: 'baja' | 'media' | 'alta' | 'urgente';
   fecha_creacion: string;
   fecha_vencimiento?: string;
   fecha_completada?: string;
 }
 
-// Funciones simuladas hasta que existan en el backend
 export const listarTareas = async (params?: { estado?: string; conductor_id?: number; }) => {
-  // TODO: Implementar cuando el backend tenga endpoint /api/tareas/
-  return {
-    total: 0,
-    tareas: [] as Tarea[],
-  };
+  try {
+    const { data } = await api.get(API_ENDPOINTS.TASKS.LISTAR);
+    return {
+      total: data.length || 0,
+      tareas: data || [],
+    };
+  } catch (error) {
+    console.error('Error listando tareas:', error);
+    return {
+      total: 0,
+      tareas: [] as Tarea[],
+    };
+  }
 };
 
 export const crearTarea = async (payload: Partial<Tarea>) => {
-  // TODO: Implementar POST /api/tareas/
-  return payload;
+  try {
+    const { data } = await api.post(API_ENDPOINTS.TASKS.CREAR, payload);
+    return data;
+  } catch (error) {
+    console.error('Error creando tarea:', error);
+    throw error;
+  }
 };
 
 export const actualizarTarea = async (id: number, payload: Partial<Tarea>) => {
-  // TODO: Implementar PATCH /api/tareas/{id}
-  return payload;
+  try {
+    const { data } = await api.patch(API_ENDPOINTS.TASKS.ACTUALIZAR(id), payload);
+    return data;
+  } catch (error) {
+    console.error('Error actualizando tarea:', error);
+    throw error;
+  }
 };
 
 export const completarTarea = async (id: number, notas?: string) => {
-  // TODO: Implementar POST /api/tareas/{id}/completar
-  return { id, notas };
+  try {
+    const { data } = await api.post(API_ENDPOINTS.TASKS.COMPLETAR(id), { notas });
+    return data;
+  } catch (error) {
+    console.error('Error completando tarea:', error);
+    throw error;
+  }
 };
 
 export default {

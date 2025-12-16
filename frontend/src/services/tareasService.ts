@@ -30,39 +30,30 @@ export const listarTareas = async (params?: { estado?: string; conductor_id?: nu
   }
 };
 
-export const crearTarea = async (payload: Partial<Tarea>) => {
-  try {
-    const { data } = await api.post(API_ENDPOINTS.TASKS.CREAR, payload);
-    return data;
-  } catch (error) {
-    console.error('Error creando tarea:', error);
-    throw error;
-  }
+export const obtenerTarea = async (id: string | number) => {
+  const { data } = await api.get(API_ENDPOINTS.TASKS.OBTENER(String(id)));
+  return data;
 };
 
-export const actualizarTarea = async (id: string | number, payload: Partial<Tarea>) => {
-  try {
-    const { data } = await api.patch(API_ENDPOINTS.TASKS.ACTUALIZAR(String(id)), payload);
-    return data;
-  } catch (error) {
-    console.error('Error actualizando tarea:', error);
-    throw error;
-  }
+export const iniciarTarea = async (id: string | number) => {
+  const { data } = await api.post(API_ENDPOINTS.TASKS.INICIAR(String(id)));
+  return data;
 };
 
-export const completarTarea = async (id: string | number, notas?: string) => {
-  try {
-    const { data } = await api.post(API_ENDPOINTS.TASKS.COMPLETAR(String(id)), { notas });
-    return data;
-  } catch (error) {
-    console.error('Error completando tarea:', error);
-    throw error;
-  }
+export const finalizarTarea = async (id: string | number, notas?: string) => {
+  const { data } = await api.post(API_ENDPOINTS.TASKS.FINALIZAR(String(id)), { notas });
+  return data;
+};
+
+export const completarParada = async (stopId: string | number) => {
+  const { data } = await api.post(API_ENDPOINTS.TASKS.COMPLETAR_PARADA(String(stopId)));
+  return data;
 };
 
 export default {
   listarTareas,
-  crearTarea,
-  actualizarTarea,
-  completarTarea,
+  obtenerTarea,
+  iniciarTarea,
+  finalizarTarea,
+  completarParada,
 };

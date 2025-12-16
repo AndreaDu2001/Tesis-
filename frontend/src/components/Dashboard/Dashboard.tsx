@@ -71,13 +71,12 @@ export default function Dashboard() {
       setLoading(true);
       setError(null);
       
-      const [incidenciasData, rutasData] = await Promise.all([
-        incidenciasService.estadisticasIncidencias(),
-        conductoresService.misRutasTodas().catch(() => ({ total: 0, asignado: 0, iniciado: 0, completado: 0 })),
-      ]);
+      const incidenciasData = await incidenciasService.estadisticasIncidencias();
+      // Las estadísticas de rutas ahora vienen del backend de rutas automáticas
+      const rutasStats = { total: 0, asignado: 0, iniciado: 0, completado: 0 };
       
       setStats(incidenciasData);
-      setRutasStats(rutasData);
+      setRutasStats(rutasStats);
     } catch (err: any) {
       console.error('Error cargando dashboard:', err);
       setError('Error al cargar estadísticas. Verifica la conexión con el backend.');

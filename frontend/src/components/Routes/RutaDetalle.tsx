@@ -83,8 +83,9 @@ export default function RutaDetalle() {
     try {
       setLoading(true);
       setError(null);
-      const response = await routesService.obtenerDetallesRuta(Number(rutaId));
-      setData(response);
+      // En el backend Go, los detalles de órdenes de trabajo vienen del Operations Service
+      setData({ ruta: null, incidencias: [], puntos: [] });
+      setError('Los detalles de rutas se muestran como órdenes de trabajo en el Operations Service');
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Error al cargar detalles de ruta');
       console.error('Error:', err);

@@ -1,29 +1,20 @@
 import api from './apiService';
 import { API_ENDPOINTS } from '../config/api';
 
-export const generarRuta = async (zona: string) => {
-  const { data } = await api.post(API_ENDPOINTS.RUTAS.GENERAR(zona));
-  return data;
+// Rutas - Este servicio es para futuras extensiones
+// En el backend Go actual, las rutas se generan automáticamente
+
+export const listarRutas = async (params?: { skip?: number; limit?: number }) => {
+  console.warn('listarRutas: Endpoint no disponible en backend actual');
+  return { routes: [] };
 };
 
-export const obtenerRuta = async (rutaId: number) => {
-  const { data } = await api.get(API_ENDPOINTS.RUTAS.OBTENER(rutaId));
-  return data; // { id, zona, puntos[], polyline? }
-};
-
-export const obtenerDetallesRuta = async (rutaId: number) => {
-  const { data } = await api.get(API_ENDPOINTS.RUTAS.DETALLES(rutaId));
-  return data; // { ruta, incidencias[], puntos[] }
-};
-
-export const listarRutasPorZona = async (zona: string) => {
-  const { data } = await api.get(API_ENDPOINTS.RUTAS.POR_ZONA(zona));
-  return data; // { total, rutas: [] }
+export const obtenerRuta = async (routeId: string) => {
+  console.warn('obtenerRuta: Endpoint no disponible en backend actual');
+  return null;
 };
 
 export default {
-  generarRuta,
+  listarRutas,
   obtenerRuta,
-  obtenerDetallesRuta,
-  listarRutasPorZona,
 };

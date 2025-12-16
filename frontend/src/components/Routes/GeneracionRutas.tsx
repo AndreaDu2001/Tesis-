@@ -48,12 +48,9 @@ export default function GeneracionRutas() {
       setError(null);
       setSuccess(null);
 
-      const response = await routesService.generarRuta(zona);
-      setRutaGenerada(response);
-      setSuccess(`Ruta generada exitosamente para zona ${zona}. ID: ${response.id}`);
-      
-      // Actualizar umbral
-      await verificarUmbral();
+      // En el backend Go, las rutas se generan automáticamente
+      // cuando los incidentes en una zona alcanzan el umbral
+      setSuccess(`En el backend Go, las rutas se generan automáticamente cuando hay incidentes acumulados en la zona ${zona}.`);
     } catch (err: any) {
       const errorMsg = err?.response?.data?.detail || 'Error al generar ruta';
       setError(errorMsg);

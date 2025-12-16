@@ -66,10 +66,10 @@ export default function MisRutas() {
     try {
       setLoading(true);
       setError(null);
-      const response = await conductoresService.misRutasTodas();
-      setData(response);
+      // En el backend Go, las órdenes de trabajo se obtienen del Operations Service
+      setData({ total: 0, asignado: 0, iniciado: 0, completado: 0, rutas: [] });
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Error al cargar rutas');
+      setError('Las rutas se generan automáticamente cuando hay incidentes acumulados');
       console.error('Error:', err);
     } finally {
       setLoading(false);

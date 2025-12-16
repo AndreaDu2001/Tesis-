@@ -30,9 +30,9 @@ export const listarNotificaciones = async (params?: { leida?: boolean; limit?: n
   }
 };
 
-export const marcarComoLeida = async (id: number) => {
+export const marcarComoLeida = async (id: string | number) => {
   try {
-    const { data } = await api.patch(API_ENDPOINTS.NOTIFICATIONS.LEER(id));
+    const { data } = await api.patch(API_ENDPOINTS.NOTIFICATIONS.LEER(String(id)));
     return data;
   } catch (error) {
     console.error('Error marcando notificación como leída:', error);

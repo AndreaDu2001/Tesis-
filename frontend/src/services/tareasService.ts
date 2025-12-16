@@ -40,9 +40,9 @@ export const crearTarea = async (payload: Partial<Tarea>) => {
   }
 };
 
-export const actualizarTarea = async (id: number, payload: Partial<Tarea>) => {
+export const actualizarTarea = async (id: string | number, payload: Partial<Tarea>) => {
   try {
-    const { data } = await api.patch(API_ENDPOINTS.TASKS.ACTUALIZAR(id), payload);
+    const { data } = await api.patch(API_ENDPOINTS.TASKS.ACTUALIZAR(String(id)), payload);
     return data;
   } catch (error) {
     console.error('Error actualizando tarea:', error);
@@ -50,9 +50,9 @@ export const actualizarTarea = async (id: number, payload: Partial<Tarea>) => {
   }
 };
 
-export const completarTarea = async (id: number, notas?: string) => {
+export const completarTarea = async (id: string | number, notas?: string) => {
   try {
-    const { data } = await api.post(API_ENDPOINTS.TASKS.COMPLETAR(id), { notas });
+    const { data } = await api.post(API_ENDPOINTS.TASKS.COMPLETAR(String(id)), { notas });
     return data;
   } catch (error) {
     console.error('Error completando tarea:', error);

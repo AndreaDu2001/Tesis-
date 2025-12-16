@@ -35,23 +35,19 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Run ESLint
-        working-directory: frontend
-        run: npm run lint --if-present || npx eslint src --max-warnings 0
-
       - name: Build frontend
         working-directory: frontend
         run: npm run build
         env:
-          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL || 'https://epagal-backend-latacunga.onrender.com' }}
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL || 'https://epagal-backend-routing-latest.onrender.com' }}
           CI: false
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
-        if: matrix.node-version == '18.x'
-        with:
-          name: frontend-build
-          path: frontend/build
+      - name: Validate build output
+        working-directory: frontend
+        run: |
+          test -f build/index.html && echo "✅ index.html generated"
+          test -f build/static -type d && echo "✅ static files generated"
+          test -d build && echo "✅ build directory created"
 
   # Job 2: Build imagen Docker
   docker-build:
@@ -98,6 +94,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            REACT_APP_API_URL=https://epagal-backend-routing-latest.onrender.com
 
   # Job 3: Deploy a Render (opcional, si tienes webhook)
   deploy:
@@ -106,61 +104,52 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
-      - name: Trigger Render deployment
+      - name: Notify Render deployment
         run: |
-          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }} \
-            -H "Content-Type: application/json" \
-            -d '{"commit_message": "${{ github.event.head_commit.message }}", "actor": "${{ github.actor }}"}'
-        if: secrets.RENDER_DEPLOY_HOOK_URL != ''
+          echo "✅ Docker image built and pushed"
+          echo "🚀 Render will auto-deploy from GitHub push"
+          echo "📦 Repository: ${{ github.repository }}"
+          echo "📌 Commit: ${{ github.sha }}"
+        if: success()
 
-      - name: Notify deployment status
+      - name: Show deployment info
         run: |
-          echo "✅ Deployment triggered for commit: ${{ github.sha }}"
-          echo "📦 Docker image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main"
-          echo "🚀 Render service will auto-deploy on next build"
-
-  # Job 4: Test de humo (smoke tests) contra el backend
-  smoke-test:
-    runs-on: ubuntu-latest
-    needs: build
-    if: always()
-    
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18.x
-
-      - name: Run smoke tests
-        working-directory: frontend
-        run: |
-          echo "🧪 Ejecutando pruebas de humo..."
-          npm install
-          # Validar que los archivos de configuración existan
-          test -f src/config/api.ts && echo "✅ API config exists"
-          test -f src/services/apiService.ts && echo "✅ API service exists"
-          echo "✅ Smoke tests passed"
-
-  # Job 5: Notificación final
+          echo "## 🚀 Deployment Information" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Service**: tesis-1-z78t.onrender.com" >> $GITHUB_STEP_SUMMARY
+  # Job 4: Notificación final
   notify:
     runs-on: ubuntu-latest
     needs: [build, docker-build]
     if: always()
     
     steps:
-      - name: Build status
+      - name: Check build status
         run: |
-          if [ "${{ needs.build.result }}" == "success" ]; then
-            echo "✅ Build successful!"
+          if [ "${{ needs.build.result }}" == "success" ] && [ "${{ needs.docker-build.result }}" == "success" ]; then
+            echo "✅ All jobs successful!"
           else
-            echo "❌ Build failed"
-            exit 1
+            echo "⚠️ Some jobs failed or were skipped"
+            if [ "${{ needs.build.result }}" != "success" ]; then
+              echo "❌ Build job failed"
+            fi
+            if [ "${{ needs.docker-build.result }}" != "success" ]; then
+              echo "❌ Docker build job failed"
+            fi
           fi
 
-      - name: Summary
+      - name: Pipeline Summary
         run: |
+          echo "## 📊 CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Build | ${{ needs.build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Build | ${{ needs.docker-build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Actor**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "## 📊 CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

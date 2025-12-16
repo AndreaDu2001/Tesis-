@@ -11,6 +11,6 @@ services:
       - port: 3000
     envVars:
       - key: REACT_APP_API_URL
-        value: "https://tesis-c5yj.onrender.com"
+          value: "https://epagal-backend-routing-latest.onrender.com"
       - key: NODE_ENV
         value: "production"

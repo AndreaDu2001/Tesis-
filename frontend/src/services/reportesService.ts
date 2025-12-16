@@ -40,16 +40,8 @@ export const reporteEstadisticas = async (params?: { fecha_inicio?: string; fech
 };
 
 export const exportarReporte = async (formato: 'pdf' | 'excel', params?: any) => {
-  try {
-    const { data } = await api.post(
-      `${API_ENDPOINTS.REPORTS.EXPORTAR}?format=${formato}`,
-      params || {}
-    );
-    return data;
-  } catch (error) {
-    console.error(`Error exportando reporte en ${formato}:`, error);
-    return { url: '#', mensaje: 'Error exportando reporte' };
-  }
+  console.warn('Exportar reporte no está soportado en el backend Go actual.');
+  return { url: '#', mensaje: 'Exportación no soportada por el backend' };
 };
 
 export default {

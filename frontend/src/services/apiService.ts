@@ -63,4 +63,5 @@ class ApiService {
   }
 }
 
-export default new ApiService();
+const apiInstance = new ApiService();
+export default apiInstance;

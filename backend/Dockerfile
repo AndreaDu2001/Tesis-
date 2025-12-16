@@ -3,14 +3,9 @@ FROM python:3.11-slim
 # Establecer directorio de trabajo
 WORKDIR /app
 
-# Instalar dependencias del sistema
+# Instalar dependencias del sistema (reduzidas para FastAPI)
 RUN apt-get update && apt-get install -y \
-    build-essential \
     libpq-dev \
-    gdal-bin \
-    libgdal-dev \
-    libgeos-dev \
-    libproj-dev \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
@@ -24,9 +19,9 @@ COPY . .
 # Crear directorio para archivos media
 RUN mkdir -p /app/media
 
-# Establecer variables de entorno
+# Establecer variables de entorno para FastAPI
 ENV PYTHONPATH=/app
-ENV DJANGO_SETTINGS_MODULE=config.settings
+ENV PYTHONUNBUFFERED=1
 
 # Exponer puerto
 EXPOSE 8000

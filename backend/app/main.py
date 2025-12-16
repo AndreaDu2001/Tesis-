@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from app.database import engine, Base
+from app.models import User, Conductor, Vehiculo, Ruta, Incidencia, Asignacion
 from app.routers import incidencias, rutas, auth, conductores
 
 # Crear tablas

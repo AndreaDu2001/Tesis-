@@ -17,18 +17,18 @@ export const crearIncidencia = async (payload: any, autoGenerarRuta = false) => 
   return data;
 };
 
-export const obtenerIncidencia = async (id: number) => {
-  const { data } = await api.get(API_ENDPOINTS.INCIDENCIAS.OBTENER(id));
+export const obtenerIncidencia = async (id: string | number) => {
+  const { data } = await api.get(API_ENDPOINTS.INCIDENCIAS.OBTENER(String(id)));
   return data;
 };
 
-export const actualizarIncidencia = async (id: number, payload: any) => {
-  const { data } = await api.patch(API_ENDPOINTS.INCIDENCIAS.ACTUALIZAR(id), payload);
+export const actualizarIncidencia = async (id: string | number, payload: any) => {
+  const { data } = await api.patch(API_ENDPOINTS.INCIDENCIAS.ACTUALIZAR(String(id)), payload);
   return data;
 };
 
-export const eliminarIncidencia = async (id: number) => {
-  await api.delete(API_ENDPOINTS.INCIDENCIAS.ELIMINAR(id));
+export const eliminarIncidencia = async (id: string | number) => {
+  await api.delete(API_ENDPOINTS.INCIDENCIAS.ELIMINAR(String(id)));
 };
 
 export const estadisticasIncidencias = async () => {

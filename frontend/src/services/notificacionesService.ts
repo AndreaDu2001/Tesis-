@@ -13,41 +13,22 @@ export interface Notificacion {
 }
 
 export const listarNotificaciones = async (params?: { leida?: boolean; limit?: number; }) => {
-  try {
-    const { data } = await api.get(API_ENDPOINTS.NOTIFICATIONS.LISTAR);
-    return {
-      total: data.total || 0,
-      no_leidas: data.unread || 0,
-      notificaciones: data.notifications || [],
-    };
-  } catch (error) {
-    console.error('Error listando notificaciones:', error);
-    return {
-      total: 0,
-      no_leidas: 0,
-      notificaciones: [] as Notificacion[],
-    };
-  }
+  console.warn('Notificaciones: endpoint no disponible en backend actual, devolviendo placeholder.');
+  return {
+    total: 0,
+    no_leidas: 0,
+    notificaciones: [] as Notificacion[],
+  };
 };
 
 export const marcarComoLeida = async (id: string | number) => {
-  try {
-    const { data } = await api.patch(API_ENDPOINTS.NOTIFICATIONS.LEER(String(id)));
-    return data;
-  } catch (error) {
-    console.error('Error marcando notificación como leída:', error);
-    throw error;
-  }
+  console.warn('Notificaciones: marcarComoLeida no disponible en backend actual.');
+  return null;
 };
 
 export const marcarTodasLeidas = async () => {
-  try {
-    const { data } = await api.post(API_ENDPOINTS.NOTIFICATIONS.LEER_TODAS);
-    return data;
-  } catch (error) {
-    console.error('Error marcando todas las notificaciones como leídas:', error);
-    throw error;
-  }
+  console.warn('Notificaciones: marcarTodasLeidas no disponible en backend actual.');
+  return null;
 };
 
 export default {

@@ -15,39 +15,31 @@ export interface Tarea {
 }
 
 export const listarTareas = async (params?: { estado?: string; conductor_id?: number; }) => {
-  try {
-    const { data } = await api.get(API_ENDPOINTS.TASKS.LISTAR);
-    return {
-      total: data.length || 0,
-      tareas: data || [],
-    };
-  } catch (error) {
-    console.error('Error listando tareas:', error);
-    return {
-      total: 0,
-      tareas: [] as Tarea[],
-    };
-  }
+  console.warn('Tareas: endpoint no disponible en backend actual, devolviendo placeholder.');
+  return {
+    total: 0,
+    tareas: [] as Tarea[],
+  };
 };
 
 export const obtenerTarea = async (id: string | number) => {
-  const { data } = await api.get(API_ENDPOINTS.TASKS.OBTENER(String(id)));
-  return data;
+  console.warn('Tareas: obtenerTarea no disponible en backend actual.');
+  return null;
 };
 
 export const iniciarTarea = async (id: string | number) => {
-  const { data } = await api.post(API_ENDPOINTS.TASKS.INICIAR(String(id)));
-  return data;
+  console.warn('Tareas: iniciarTarea no disponible en backend actual.');
+  return null;
 };
 
 export const finalizarTarea = async (id: string | number, notas?: string) => {
-  const { data } = await api.post(API_ENDPOINTS.TASKS.FINALIZAR(String(id)), { notas });
-  return data;
+  console.warn('Tareas: finalizarTarea no disponible en backend actual.');
+  return null;
 };
 
 export const completarParada = async (stopId: string | number) => {
-  const { data } = await api.post(API_ENDPOINTS.TASKS.COMPLETAR_PARADA(String(stopId)));
-  return data;
+  console.warn('Tareas: completarParada no disponible en backend actual.');
+  return null;
 };
 
 export default {

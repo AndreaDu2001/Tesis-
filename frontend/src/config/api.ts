@@ -36,6 +36,22 @@ export const API_ENDPOINTS = {
     DISPONIBLES: `${FLEET_SERVICE}${API_V1}/conductores/disponibles`,
     ASIGNACIONES: `${FLEET_SERVICE}${API_V1}/conductores/asignaciones/`,
     ASIGNACIONES_POR_RUTA: (id: string) => `${FLEET_SERVICE}${API_V1}/conductores/asignaciones/ruta/${id}`,
+    // CRUD placeholders (no hay endpoints en backend actual)
+    LISTAR: '#',
+    CREAR: '#',
+    OBTENER: (_id: string) => '#',
+    ACTUALIZAR: (_id: string) => '#',
+    ELIMINAR: (_id: string) => '#',
+    // Camiones
+    TRUCKS_LISTAR: '#',
+    TRUCKS_CREAR: '#',
+    TRUCKS_OBTENER: (_id: string) => '#',
+    TRUCKS_ACTUALIZAR: (_id: string) => '#',
+    TRUCKS_ELIMINAR: (_id: string) => '#',
+    // Turnos
+    CLOCK_IN: '#',
+    CLOCK_OUT: '#',
+    ACTIVE_SHIFT: (_driverId: string) => '#',
   },
 
   // ==================== INCIDENTES (Incident Service: 8082) ====================

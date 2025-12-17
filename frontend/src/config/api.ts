@@ -3,7 +3,7 @@
 // Backend externo: https://github.com/Andres09xZ/latacunga_clean_app.git
 
 // URLs de servicios (FastAPI en Render). Permite override via entorno.
-const API_BASE = process.env.REACT_APP_API_BASE || 'https://epagal-backend-routing-latest.onrender.com';
+const API_BASE =  'https://epagal-backend-routing-latest.onrender.com';
 const API_PREFIX = process.env.REACT_APP_API_PREFIX || '/api/v1';
 
 // NOTA: En Render, todos los servicios están detrás de un proxy/load balancer en la misma URL

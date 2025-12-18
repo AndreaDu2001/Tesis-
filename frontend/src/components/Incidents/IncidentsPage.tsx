@@ -228,7 +228,13 @@ const IncidentsPage: React.FC = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               />
-              {incidents.map((incident) => (
+              {incidents
+                .filter((incident) =>
+                  incident.ubicacion &&
+                  Array.isArray(incident.ubicacion.coordinates) &&
+                  incident.ubicacion.coordinates.length >= 2
+                )
+                .map((incident) => (
                 <Marker
                   key={incident.id}
                   position={[
@@ -242,11 +248,11 @@ const IncidentsPage: React.FC = () => {
                     {incident.descripcion}
                     <br />
                     <Chip
-                      label={incident.prioridad}
+                      label={incident.prioridad || 'MEDIA'}
                       size="small"
                       sx={{
                         mt: 1,
-                        bgcolor: getPriorityColor(incident.prioridad),
+                        bgcolor: getPriorityColor(incident.prioridad || 'MEDIA'),
                         color: 'white',
                       }}
                     />
@@ -291,10 +297,10 @@ const IncidentsPage: React.FC = () => {
                     </Box>
 
                     <Chip
-                      label={STATUS_OPTIONS.find(s => s.value === incident.estado)?.label}
+                      label={STATUS_OPTIONS.find(s => s.value === incident.estado)?.label || 'Reportada'}
                       size="small"
                       sx={{
-                        bgcolor: getStatusColor(incident.estado),
+                        bgcolor: getStatusColor(incident.estado || 'REPORTADA'),
                         color: 'white',
                       }}
                     />

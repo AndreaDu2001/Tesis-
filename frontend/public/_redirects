@@ -1,7 +1,1 @@
-[
-  {
-    "source": "/*",
-    "destination": "/index.html",
-    "type": "rewrite"
-  }
-]
+/* /index.html 200

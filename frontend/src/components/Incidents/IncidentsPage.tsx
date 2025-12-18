@@ -31,7 +31,7 @@ import {
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import api from '../../services/apiService';
+import IncidenciasService from '../../services/incidenciasService';
 
 // Fix para íconos de Leaflet en React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -104,8 +104,8 @@ const IncidentsPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/incidents/');
-      setIncidents(response.data.results || response.data);
+      const data = await IncidenciasService.listarIncidencias();
+      setIncidents(Array.isArray(data) ? data : (data.results || data));
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al cargar incidencias');
       console.error('Error loading incidents:', err);
@@ -127,7 +127,7 @@ const IncidentsPage: React.FC = () => {
         },
       };
       
-      await api.post('/incidents/', payload);
+      await IncidenciasService.crearIncidencia(payload);
       setOpenDialog(false);
       resetForm();
       loadIncidents();
@@ -138,7 +138,7 @@ const IncidentsPage: React.FC = () => {
 
   const handleUpdateStatus = async (id: number, estado: string) => {
     try {
-      await api.patch(`/incidents/${id}/`, { estado });
+      await IncidenciasService.actualizarIncidencia(id, { estado });
       loadIncidents();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al actualizar estado');
@@ -149,7 +149,7 @@ const IncidentsPage: React.FC = () => {
     if (!window.confirm('¿Está seguro de eliminar esta incidencia?')) return;
     
     try {
-      await api.delete(`/incidents/${id}/`);
+      await IncidenciasService.eliminarIncidencia(id);
       loadIncidents();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al eliminar incidencia');

@@ -1,6 +1,20 @@
 import api from './apiService';
 import { API_ENDPOINTS } from '../config/api';
 
+// Fallback inteligente entre "/incidencias" (FastAPI) y "/incidents" (alias/otros)
+let incidentsBase: 'incidencias' | 'incidents' | null = null;
+
+async function resolveIncidentsBase(): Promise<'incidencias' | 'incidents'> {
+  if (incidentsBase) return incidentsBase;
+  try {
+    await api.get('incidencias/?limit=1');
+    incidentsBase = 'incidencias';
+  } catch (_) {
+    incidentsBase = 'incidents';
+  }
+  return incidentsBase;
+}
+
 export const listarIncidencias = async (params?: { estado?: string; zona?: string; tipo?: string; skip?: number; limit?: number; }) => {
   const query = new URLSearchParams();
   if (params?.estado) query.append('estado', params.estado);
@@ -8,32 +22,54 @@ export const listarIncidencias = async (params?: { estado?: string; zona?: strin
   if (params?.tipo) query.append('tipo', params.tipo);
   if (params?.skip !== undefined) query.append('skip', String(params.skip));
   if (params?.limit !== undefined) query.append('limit', String(params.limit));
-  const { data } = await api.get(`${API_ENDPOINTS.INCIDENCIAS.LISTAR}?${query.toString()}`);
-  return data;
+  const base = await resolveIncidentsBase();
+  try {
+    const { data } = await api.get(`${base}/?${query.toString()}`);
+    return data;
+  } catch (err) {
+    // último intento cruzado
+    const alt = base === 'incidencias' ? 'incidents' : 'incidencias';
+    const { data } = await api.get(`${alt}/?${query.toString()}`);
+    return data;
+  }
 };
 
 export const crearIncidencia = async (payload: any, autoGenerarRuta = false) => {
-  const { data } = await api.post(`${API_ENDPOINTS.INCIDENCIAS.CREAR}?auto_generar_ruta=${autoGenerarRuta}`, payload);
+  const base = await resolveIncidentsBase();
+  const { data } = await api.post(`${base}/?auto_generar_ruta=${autoGenerarRuta}`, payload);
   return data;
 };
 
 export const obtenerIncidencia = async (id: string | number) => {
-  const { data } = await api.get(API_ENDPOINTS.INCIDENCIAS.OBTENER(String(id)));
+  const base = await resolveIncidentsBase();
+  const { data } = await api.get(`${base}/${String(id)}`);
   return data;
 };
 
 export const actualizarIncidencia = async (id: string | number, payload: any) => {
-  const { data } = await api.patch(API_ENDPOINTS.INCIDENCIAS.ACTUALIZAR(String(id)), payload);
+  const base = await resolveIncidentsBase();
+  const { data } = await api.patch(`${base}/${String(id)}`, payload);
   return data;
 };
 
 export const eliminarIncidencia = async (id: string | number) => {
-  await api.delete(API_ENDPOINTS.INCIDENCIAS.ELIMINAR(String(id)));
+  const base = await resolveIncidentsBase();
+  await api.delete(`${base}/${String(id)}`);
 };
 
 export const estadisticasIncidencias = async () => {
-  const { data } = await api.get(API_ENDPOINTS.INCIDENCIAS.STATS);
-  return data;
+  try {
+    const { data } = await api.get('incidencias/stats');
+    return data;
+  } catch (_) {
+    try {
+      const { data } = await api.get('reports/statistics/');
+      return data;
+    } catch (__) {
+      const { data } = await api.get('incidents/statistics');
+      return data;
+    }
+  }
 };
 
 export const verificarUmbralZona = async (zona: string) => {

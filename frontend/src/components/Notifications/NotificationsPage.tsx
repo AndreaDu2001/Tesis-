@@ -65,8 +65,9 @@ const NotificationsPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/notifications/');
-      setNotifications(response.data.results || response.data);
+      // Usa baseURL con prefijo /api y estructura del backend FastAPI
+      const response = await api.get('notifications/');
+      setNotifications(response.data.notifications || response.data);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al cargar notificaciones');
       console.error('Error loading notifications:', err);
@@ -77,7 +78,7 @@ const NotificationsPage: React.FC = () => {
 
   const handleMarkAsRead = async (id: number) => {
     try {
-      await api.post(`/notifications/${id}/mark_as_read/`);
+      await api.patch(`notifications/${id}/read`);
       loadNotifications();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al marcar como leída');

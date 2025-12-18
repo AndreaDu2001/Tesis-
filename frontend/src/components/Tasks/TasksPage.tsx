@@ -94,8 +94,8 @@ const TasksPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/tasks/');
-      setTasks(response.data.results || response.data);
+      const response = await api.get('tasks/');
+      setTasks(response.data.tasks || response.data);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al cargar tareas');
       console.error('Error loading tasks:', err);
@@ -106,7 +106,7 @@ const TasksPage: React.FC = () => {
 
   const handleCreateTask = async () => {
     try {
-      await api.post('/tasks/', formData);
+      await api.post('tasks/', formData);
       setOpenDialog(false);
       resetForm();
       loadTasks();
@@ -117,7 +117,7 @@ const TasksPage: React.FC = () => {
 
   const handleUpdateStatus = async (id: number, estado: string) => {
     try {
-      await api.patch(`/tasks/${id}/`, { estado });
+      await api.patch(`tasks/${id}`, { estado });
       loadTasks();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al actualizar estado');
@@ -126,7 +126,7 @@ const TasksPage: React.FC = () => {
 
   const handleStartTask = async (id: number) => {
     try {
-      await api.post(`/tasks/${id}/start/`);
+      await api.post(`tasks/${id}/start`);
       loadTasks();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al iniciar tarea');
@@ -135,7 +135,7 @@ const TasksPage: React.FC = () => {
 
   const handleCompleteTask = async (id: number) => {
     try {
-      await api.post(`/tasks/${id}/complete/`);
+      await api.post(`tasks/${id}/complete`);
       loadTasks();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al completar tarea');
@@ -146,7 +146,7 @@ const TasksPage: React.FC = () => {
     if (!window.confirm('¿Está seguro de eliminar esta tarea?')) return;
     
     try {
-      await api.delete(`/tasks/${id}/`);
+      await api.delete(`tasks/${id}`);
       loadTasks();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al eliminar tarea');

@@ -37,13 +37,15 @@ export const estadisticasIncidencias = async () => {
 };
 
 export const verificarUmbralZona = async (zona: string) => {
-  try {
-    const { data } = await api.get(API_ENDPOINTS.INCIDENCIAS.UMBRAL(zona));
-    return data;
-  } catch (error) {
-    console.warn('Umbral no disponible en backend actual');
-    return null;
-  }
+  // Backend actual no expone umbrales; devolver placeholder para evitar 404
+  console.warn('Umbral no disponible en backend actual, devolviendo placeholder.');
+  return {
+    zona,
+    suma_gravedad: 0,
+    umbral_configurado: 999,
+    incidencias_pendientes: 0,
+    debe_generar_ruta: false,
+  };
 };
 
 const IncidenciasService = {

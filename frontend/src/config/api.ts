@@ -1,13 +1,23 @@
-// Configuración de API - Microservicios en Go (latacunga_clean_app)
-// Cada servicio está en su propio puerto
-// Backend externo: https://github.com/Andres09xZ/latacunga_clean_app.git
+// Configuración de API - Backend FastAPI en Render
+// Backend: https://epagal-backend-routing-latest.onrender.com
+// Documentación: https://epagal-backend-routing-latest.onrender.com/docs
+
+// Normaliza la base para evitar errores si la env incluye /api o /api/v1
+const normalizeBase = (raw?: string) => {
+  const fallback = 'https://epagal-backend-routing-latest.onrender.com';
+  if (!raw) return fallback;
+  let base = raw.trim();
+  base = base.replace(/\/api(?:\/v1)?$/i, '');
+  base = base.replace(/\/+$/g, '');
+  return base || fallback;
+};
 
 // URLs de servicios (FastAPI en Render). Permite override via entorno.
-const API_BASE =  'https://epagal-backend-routing-latest.onrender.com';
-const API_PREFIX = process.env.REACT_APP_API_PREFIX || '/api/v1';
+const API_BASE = normalizeBase(process.env.REACT_APP_API_BASE);
+const API_PREFIX = '/api';
 
-// NOTA: En Render, todos los servicios están detrás de un proxy/load balancer en la misma URL
-// En desarrollo local, puedes usar REACT_APP_API_BASE=http://localhost:8000 y REACT_APP_API_PREFIX=/api
+// NOTA: En Render, todos los servicios están en la misma URL con prefijo /api
+// En desarrollo local, usa REACT_APP_API_BASE=http://localhost:8000
 
 const AUTH_SERVICE = API_BASE;
 const FLEET_SERVICE = API_BASE;
@@ -54,15 +64,15 @@ export const API_ENDPOINTS = {
     ACTIVE_SHIFT: (_driverId: string) => '#',
   },
 
-  // ==================== INCIDENTES (Incident Service: 8082) ====================
+  // ==================== INCIDENTES ====================
   INCIDENCIAS: {
-    LISTAR: `${INCIDENT_SERVICE}${API_V1}/incidents`,
-    CREAR: `${INCIDENT_SERVICE}${API_V1}/incidents`,
-    OBTENER: (id: string) => `${INCIDENT_SERVICE}${API_V1}/incidents/${id}`,
-    ACTUALIZAR: (id: string) => `${INCIDENT_SERVICE}${API_V1}/incidents/${id}`,
-    ELIMINAR: (id: string) => `${INCIDENT_SERVICE}${API_V1}/incidents/${id}`,
-    STATS: `${INCIDENT_SERVICE}${API_V1}/incidents/statistics`,
-    UMBRAL: (zona: string) => `${INCIDENT_SERVICE}${API_V1}/incidents/zone/${zona}/threshold`,
+    LISTAR: `${INCIDENT_SERVICE}${API_V1}/incidencias/`,
+    CREAR: `${INCIDENT_SERVICE}${API_V1}/incidencias/`,
+    OBTENER: (id: string) => `${INCIDENT_SERVICE}${API_V1}/incidencias/${id}`,
+    ACTUALIZAR: (id: string) => `${INCIDENT_SERVICE}${API_V1}/incidencias/${id}`,
+    ELIMINAR: (id: string) => `${INCIDENT_SERVICE}${API_V1}/incidencias/${id}`,
+    STATS: `${INCIDENT_SERVICE}${API_V1}/incidencias/stats`,
+    UMBRAL: (zona: string) => `${INCIDENT_SERVICE}${API_V1}/incidencias/zona/${zona}/umbral`,
   },
 
   // ==================== OPERACIONES (Operations Service: 8085) ====================
@@ -85,8 +95,8 @@ export const API_ENDPOINTS = {
 
   // ==================== REPORTES ====================
   REPORTS: {
-    ESTADISTICAS: `${INCIDENT_SERVICE}${API_V1}/incidents/statistics`,
-    METRICAS_ZONA: (zoneId: number) => `${INCIDENT_SERVICE}${API_V1}/incidents/zone/${zoneId}/threshold`,
+    ESTADISTICAS: `${INCIDENT_SERVICE}${API_V1}/reports/statistics/`,
+    METRICAS_ZONA: (zoneId: number) => `${INCIDENT_SERVICE}${API_V1}/incidencias/zona/${zoneId}/umbral`,
   },
 
   // ==================== SCHEDULER (Planning) ====================

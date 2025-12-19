@@ -51,6 +51,8 @@ interface Incident {
     type: string;
     coordinates: [number, number];
   };
+  lat?: number;
+  lon?: number;
   direccion: string;
   reportado_por?: {
     email: string;
@@ -229,36 +231,34 @@ const IncidentsPage: React.FC = () => {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               />
               {incidents
-                .filter((incident) =>
-                  incident.ubicacion &&
-                  Array.isArray(incident.ubicacion.coordinates) &&
-                  incident.ubicacion.coordinates.length >= 2
-                )
-                .map((incident) => (
-                <Marker
-                  key={incident.id}
-                  position={[
-                    incident.ubicacion.coordinates[1],
-                    incident.ubicacion.coordinates[0],
-                  ]}
-                >
-                  <Popup>
-                    <strong>{INCIDENT_TYPES.find(t => t.value === incident.tipo)?.label}</strong>
-                    <br />
-                    {incident.descripcion}
-                    <br />
-                    <Chip
-                      label={incident.prioridad || 'MEDIA'}
-                      size="small"
-                      sx={{
-                        mt: 1,
-                        bgcolor: getPriorityColor(incident.prioridad || 'MEDIA'),
-                        color: 'white',
-                      }}
-                    />
-                  </Popup>
-                </Marker>
-              ))}
+                .map((incident) => {
+                  const lat = incident.ubicacion?.coordinates?.[1] ?? incident.lat;
+                  const lon = incident.ubicacion?.coordinates?.[0] ?? incident.lon;
+                  if (lat === undefined || lon === undefined) return null;
+                  return (
+                    <Marker
+                      key={incident.id}
+                      position={[lat, lon]}
+                    >
+                      <Popup>
+                        <strong>{INCIDENT_TYPES.find(t => t.value === incident.tipo)?.label || incident.tipo}</strong>
+                        <br />
+                        {incident.descripcion}
+                        <br />
+                        <Chip
+                          label={incident.prioridad || 'MEDIA'}
+                          size="small"
+                          sx={{
+                            mt: 1,
+                            bgcolor: getPriorityColor(incident.prioridad || 'MEDIA'),
+                            color: 'white',
+                          }}
+                        />
+                      </Popup>
+                    </Marker>
+                  );
+                })
+                .filter(Boolean)}
             </MapContainer>
           </Paper>
 

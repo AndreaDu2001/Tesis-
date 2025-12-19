@@ -28,7 +28,6 @@ import {
   CheckCircle as CheckIcon,
   Delete as DeleteIcon,
   PlayArrow as StartIcon,
-  Stop as StopIcon,
 } from '@mui/icons-material';
 import tareasService from '../../services/tareasService';
 

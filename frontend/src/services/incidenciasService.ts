@@ -1,5 +1,4 @@
 import api from './apiService';
-import { API_ENDPOINTS } from '../config/api';
 
 // Fallback inteligente entre "/incidencias" (FastAPI) y "/incidents" (alias/otros)
 let incidentsBase: 'incidencias' | 'incidents' | null = null;

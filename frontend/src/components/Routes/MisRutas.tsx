@@ -28,8 +28,6 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import * as conductoresService from '../../services/conductoresService';
-import * as routesService from '../../services/routesService';
 
 interface Ruta {
   id: number;
@@ -54,7 +52,6 @@ export default function MisRutas() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<MisRutasResponse | null>(null);
-  const [finalizandoRutaId, setFinalizandoRutaId] = useState<number | null>(null);
   const [notasRuta, setNotasRuta] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
 

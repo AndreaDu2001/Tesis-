@@ -1,6 +1,3 @@
-import api from './apiService';
-import { API_ENDPOINTS } from '../config/api';
-
 export interface Notificacion {
   id: number;
   tipo: 'info' | 'warning' | 'error' | 'success';

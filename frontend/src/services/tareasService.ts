@@ -1,6 +1,3 @@
-import api from './apiService';
-import { API_ENDPOINTS } from '../config/api';
-
 export interface Tarea {
   id: number;
   titulo: string;

@@ -25,7 +25,6 @@ import {
   Refresh as RefreshIcon,
   LocationOn as LocationIcon,
   Delete as DeleteIcon,
-  Edit as EditIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -88,7 +87,6 @@ const IncidentsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [formData, setFormData] = useState({
     tipo: 'ACUMULACION',
     descripcion: '',

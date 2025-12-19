@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Paper,
@@ -22,8 +22,6 @@ import {
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
@@ -60,9 +58,9 @@ const ReportsPage: React.FC = () => {
 
   useEffect(() => {
     loadStats();
-  }, [dateRange]);
+  }, [dateRange, loadStats]);
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -87,7 +85,7 @@ const ReportsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleExportPDF = async () => {
     setError('Exportar PDF no está disponible en el backend actual.');

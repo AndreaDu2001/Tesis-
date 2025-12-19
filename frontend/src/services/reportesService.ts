@@ -1,6 +1,3 @@
-import api from './apiService';
-import { API_ENDPOINTS } from '../config/api';
-
 export interface ReporteEstadisticas {
   periodo: string;
   total_incidencias: number;
@@ -18,11 +15,17 @@ export const reporteEstadisticas = async (params?: { fecha_inicio?: string; fech
     if (params?.fecha_inicio) queryParams.append('start_date', params.fecha_inicio);
     if (params?.fecha_fin) queryParams.append('end_date', params.fecha_fin);
     
-    const { data } = await api.get(`${API_ENDPOINTS.REPORTS.ESTADISTICAS}?${queryParams.toString()}`);
-    
+    // Placeholder: backend no tiene /api/reports/statistics
+    console.warn('Reportes: endpoint no disponible en backend actual, devolviendo placeholder.');
     return {
       periodo: params?.fecha_inicio ? `${params.fecha_inicio} - ${params.fecha_fin}` : 'Histórico',
-      ...data,
+      total_incidencias: 0,
+      total_rutas_generadas: 0,
+      total_rutas_completadas: 0,
+      suma_gravedad_total: 0,
+      incidencias_por_tipo: {},
+      incidencias_por_zona: {},
+      eficiencia_conductores: [],
     } as ReporteEstadisticas;
   } catch (error) {
     console.error('Error generando reporte:', error);

@@ -10,7 +10,21 @@ services:
     ports:
       - port: 3000
     envVars:
-      - key: REACT_APP_API_URL
+      - key: REACT_APP_API_BASE_PRIMARY
+        value: "https://tesis-c5yj.onrender.com"
+      - key: REACT_APP_API_BASE_SECONDARY
         value: "https://epagal-backend-routing-latest.onrender.com"
+      - key: REACT_APP_USE_SECONDARY_CONDUCTORES
+        value: "false"
+      - key: REACT_APP_USE_SECONDARY_INCIDENCIAS
+        value: "false"
+      - key: REACT_APP_USE_SECONDARY_RUTAS
+        value: "false"
+      - key: REACT_APP_USE_SECONDARY_TASKS
+        value: "true"
+      - key: REACT_APP_USE_SECONDARY_NOTIFICATIONS
+        value: "true"
+      - key: REACT_APP_USE_SECONDARY_REPORTS
+        value: "true"
       - key: NODE_ENV
         value: "production"

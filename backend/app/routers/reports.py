@@ -1,16 +1,16 @@
 """
 Router para reportes (/api/reports)
 """
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from datetime import datetime
+from fastapi import APIRouter, Depends  # type: ignore[import]
+from sqlalchemy.orm import Session  # type: ignore[import]
+from typing import Annotated
 from app.database import get_db
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
 @router.get("/statistics/")
-async def statistics(start_date: str | None = None, end_date: str | None = None, db: Session = Depends(get_db)):
+async def statistics(db: Annotated[Session, Depends(get_db)], start_date: str | None = None, end_date: str | None = None):
     """Estadísticas de reportes (dummy)"""
     return {
         "period": f"{start_date or 'N/A'} - {end_date or 'N/A'}",
@@ -25,5 +25,5 @@ async def statistics(start_date: str | None = None, end_date: str | None = None,
 
 
 @router.post("/export/")
-async def export_report(format: str = "pdf", db: Session = Depends(get_db)):
+async def export_report(db: Annotated[Session, Depends(get_db)], format: str = "pdf"):
     return {"url": "#", "message": f"Reporte en {format} no implementado"}

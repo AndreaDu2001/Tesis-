@@ -1,10 +1,10 @@
 """
 Router de incidencias para FastAPI
 """
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status  # type: ignore[import]
+from sqlalchemy.orm import Session  # type: ignore[import]
+from pydantic import BaseModel  # type: ignore[import]
+from typing import Annotated, List, Optional
 from datetime import datetime
 from app.database import get_db
 from app.models import Incidencia
@@ -27,7 +27,7 @@ class IncidenciaResponse(BaseModel):
     reportado_en: datetime
     usuario_id: int
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 
@@ -45,27 +45,27 @@ class IncidenciaCreate(BaseModel):
 
 @router.get("/", response_model=List[IncidenciaResponse])
 async def listar_incidencias(
+    db: Annotated[Session, Depends(get_db)],
     estado: Optional[str] = None,
     zona: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db)
 ):
     """Listar todas las incidencias"""
     query = db.query(Incidencia)
-    
+
     if estado:
         query = query.filter(Incidencia.estado == estado)
     if zona:
         query = query.filter(Incidencia.zona == zona)
-    
+
     return query.offset(skip).limit(limit).all()
 
 
 @router.post("/", response_model=IncidenciaResponse, status_code=status.HTTP_201_CREATED)
 async def crear_incidencia(
     incidencia: IncidenciaCreate,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Crear nueva incidencia"""
     new_incident = Incidencia(
@@ -87,7 +87,7 @@ async def crear_incidencia(
 
 
 @router.get("/{incidencia_id}", response_model=IncidenciaResponse)
-async def obtener_incidencia(incidencia_id: int, db: Session = Depends(get_db)):
+async def obtener_incidencia(incidencia_id: int, db: Annotated[Session, Depends(get_db)]):
     """Obtener una incidencia específica"""
     incidencia = db.query(Incidencia).filter(Incidencia.id == incidencia_id).first()
     if not incidencia:
@@ -99,41 +99,41 @@ async def obtener_incidencia(incidencia_id: int, db: Session = Depends(get_db)):
 async def actualizar_incidencia(
     incidencia_id: int,
     payload: dict,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Actualizar una incidencia"""
     incidencia = db.query(Incidencia).filter(Incidencia.id == incidencia_id).first()
     if not incidencia:
         raise HTTPException(status_code=404, detail="Incidencia no encontrada")
-    
+
     for key, value in payload.items():
         if hasattr(incidencia, key):
             setattr(incidencia, key, value)
-    
+
     db.commit()
     db.refresh(incidencia)
     return incidencia
 
 
 @router.delete("/{incidencia_id}")
-async def eliminar_incidencia(incidencia_id: int, db: Session = Depends(get_db)):
+async def eliminar_incidencia(incidencia_id: int, db: Annotated[Session, Depends(get_db)]):
     """Eliminar una incidencia"""
     incidencia = db.query(Incidencia).filter(Incidencia.id == incidencia_id).first()
     if not incidencia:
         raise HTTPException(status_code=404, detail="Incidencia no encontrada")
-    
+
     db.delete(incidencia)
     db.commit()
     return {"mensaje": "Incidencia eliminada"}
 
 
 @router.get("/stats", response_model=dict)
-async def estadisticas(db: Session = Depends(get_db)):
+async def estadisticas(db: Annotated[Session, Depends(get_db)]):
     """Estadísticas de incidencias"""
     total = db.query(Incidencia).count()
     por_estado = {}
     por_zona = {}
-    
+
     return {
         "total": total,
         "por_estado": por_estado,

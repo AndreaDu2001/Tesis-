@@ -1,0 +1,16 @@
+services:
+  # Frontend React que consume backend de Andrea
+  - type: web
+    name: epagal-frontend
+    plan: free
+    dockerfile: ./Dockerfile
+    dockerContext: ./
+    healthCheckPath: /
+    healthCheckStartupTimeout: 300
+    ports:
+      - port: 3000
+    envVars:
+      - key: REACT_APP_API_URL
+        value: "https://epagal-backend-routing-latest.onrender.com"
+      - key: NODE_ENV
+        value: "production"

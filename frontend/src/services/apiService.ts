@@ -15,7 +15,7 @@ class ApiService {
     // Interceptor para agregar el token a todas las solicitudes
     this.api.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('access_token') || localStorage.getItem('token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -30,26 +30,12 @@ class ApiService {
     this.api.interceptors.response.use(
       (response) => response,
       async (error) => {
-        if (error.response?.status === 401) {
-          // Token expirado, intentar refrescar
-          try {
-            const refreshToken = localStorage.getItem('refreshToken');
-            if (refreshToken) {
-              const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
-                refresh: refreshToken,
-              });
-              localStorage.setItem('token', response.data.access);
-              // Reintentar la solicitud original
-              error.config.headers.Authorization = `Bearer ${response.data.access}`;
-              return axios.request(error.config);
-            }
-          } catch (refreshError) {
-            // Refresh falló, cerrar sesión
-            localStorage.removeItem('token');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('user');
-            window.location.href = '/login';
-          }
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          // El backend FastAPI no expone refresh; limpiar sesión y redirigir.
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
         }
         return Promise.reject(error);
       }
@@ -77,4 +63,5 @@ class ApiService {
   }
 }
 
-export default new ApiService();
+const apiInstance = new ApiService();
+export default apiInstance;

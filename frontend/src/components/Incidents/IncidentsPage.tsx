@@ -31,7 +31,7 @@ import {
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import api from '../../services/apiService';
+import IncidenciasService from '../../services/incidenciasService';
 
 // Fix para íconos de Leaflet en React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -51,6 +51,8 @@ interface Incident {
     type: string;
     coordinates: [number, number];
   };
+  lat?: number;
+  lon?: number;
   direccion: string;
   reportado_por?: {
     email: string;
@@ -104,8 +106,8 @@ const IncidentsPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/incidents/');
-      setIncidents(response.data.results || response.data);
+      const data = await IncidenciasService.listarIncidencias();
+      setIncidents(Array.isArray(data) ? data : (data.results || data));
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al cargar incidencias');
       console.error('Error loading incidents:', err);
@@ -127,7 +129,7 @@ const IncidentsPage: React.FC = () => {
         },
       };
       
-      await api.post('/incidents/', payload);
+      await IncidenciasService.crearIncidencia(payload);
       setOpenDialog(false);
       resetForm();
       loadIncidents();
@@ -138,7 +140,7 @@ const IncidentsPage: React.FC = () => {
 
   const handleUpdateStatus = async (id: number, estado: string) => {
     try {
-      await api.patch(`/incidents/${id}/`, { estado });
+      await IncidenciasService.actualizarIncidencia(id, { estado });
       loadIncidents();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al actualizar estado');
@@ -149,7 +151,7 @@ const IncidentsPage: React.FC = () => {
     if (!window.confirm('¿Está seguro de eliminar esta incidencia?')) return;
     
     try {
-      await api.delete(`/incidents/${id}/`);
+      await IncidenciasService.eliminarIncidencia(id);
       loadIncidents();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al eliminar incidencia');
@@ -228,31 +230,35 @@ const IncidentsPage: React.FC = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               />
-              {incidents.map((incident) => (
-                <Marker
-                  key={incident.id}
-                  position={[
-                    incident.ubicacion.coordinates[1],
-                    incident.ubicacion.coordinates[0],
-                  ]}
-                >
-                  <Popup>
-                    <strong>{INCIDENT_TYPES.find(t => t.value === incident.tipo)?.label}</strong>
-                    <br />
-                    {incident.descripcion}
-                    <br />
-                    <Chip
-                      label={incident.prioridad}
-                      size="small"
-                      sx={{
-                        mt: 1,
-                        bgcolor: getPriorityColor(incident.prioridad),
-                        color: 'white',
-                      }}
-                    />
-                  </Popup>
-                </Marker>
-              ))}
+              {incidents
+                .map((incident) => {
+                  const lat = incident.ubicacion?.coordinates?.[1] ?? incident.lat;
+                  const lon = incident.ubicacion?.coordinates?.[0] ?? incident.lon;
+                  if (lat === undefined || lon === undefined) return null;
+                  return (
+                    <Marker
+                      key={incident.id}
+                      position={[lat, lon]}
+                    >
+                      <Popup>
+                        <strong>{INCIDENT_TYPES.find(t => t.value === incident.tipo)?.label || incident.tipo}</strong>
+                        <br />
+                        {incident.descripcion}
+                        <br />
+                        <Chip
+                          label={incident.prioridad || 'MEDIA'}
+                          size="small"
+                          sx={{
+                            mt: 1,
+                            bgcolor: getPriorityColor(incident.prioridad || 'MEDIA'),
+                            color: 'white',
+                          }}
+                        />
+                      </Popup>
+                    </Marker>
+                  );
+                })
+                .filter(Boolean)}
             </MapContainer>
           </Paper>
 
@@ -291,10 +297,10 @@ const IncidentsPage: React.FC = () => {
                     </Box>
 
                     <Chip
-                      label={STATUS_OPTIONS.find(s => s.value === incident.estado)?.label}
+                      label={STATUS_OPTIONS.find(s => s.value === incident.estado)?.label || 'Reportada'}
                       size="small"
                       sx={{
-                        bgcolor: getStatusColor(incident.estado),
+                        bgcolor: getStatusColor(incident.estado || 'REPORTADA'),
                         color: 'white',
                       }}
                     />

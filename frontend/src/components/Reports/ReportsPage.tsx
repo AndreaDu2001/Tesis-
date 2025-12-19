@@ -34,7 +34,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import api from '../../services/apiService';
+import reportesService from '../../services/reportesService';
 
 interface Stats {
   total_incidencias: number;
@@ -66,13 +66,21 @@ const ReportsPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/reports/statistics/', {
-        params: {
-          start_date: dateRange.start,
-          end_date: dateRange.end,
-        },
+      const data = await reportesService.reporteEstadisticas({
+        fecha_inicio: dateRange.start,
+        fecha_fin: dateRange.end,
       });
-      setStats(response.data);
+      // Adaptar estructura a la UI esperada
+      setStats({
+        total_incidencias: data.total_incidencias || 0,
+        incidencias_por_estado: (data as any).incidencias_por_estado || {},
+        incidencias_por_tipo: data.incidencias_por_tipo || {},
+        total_rutas: data.total_rutas_generadas || 0,
+        rutas_activas: 0,
+        total_tareas: 0,
+        tareas_completadas: 0,
+        tareas_pendientes: 0,
+      });
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al cargar estadísticas');
       console.error('Error loading stats:', err);
@@ -82,49 +90,11 @@ const ReportsPage: React.FC = () => {
   };
 
   const handleExportPDF = async () => {
-    try {
-      const response = await api.get('/api/reports/generate/', {
-        params: {
-          start_date: dateRange.start,
-          end_date: dateRange.end,
-          format: 'pdf',
-        },
-        responseType: 'blob',
-      });
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `reporte_${dateRange.start}_${dateRange.end}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (err: any) {
-      setError('Error al generar reporte PDF');
-    }
+    setError('Exportar PDF no está disponible en el backend actual.');
   };
 
   const handleExportExcel = async () => {
-    try {
-      const response = await api.get('/reports/generate/', {
-        params: {
-          start_date: dateRange.start,
-          end_date: dateRange.end,
-          format: 'excel',
-        },
-        responseType: 'blob',
-      });
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `reporte_${dateRange.start}_${dateRange.end}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (err: any) {
-      setError('Error al generar reporte Excel');
-    }
+    setError('Exportar Excel no está disponible en el backend actual.');
   };
 
   const incidentsByState = stats ? Object.entries(stats.incidencias_por_estado).map(([name, value]) => ({

@@ -1,50 +1,46 @@
 import api from './apiService';
 import { API_ENDPOINTS } from '../config/api';
 
-// ==================== CONDUCTORES (CRUD placeholders - no endpoints en backend) ====================
+// ==================== CONDUCTORES CRUD ====================
 
 export const listarConductores = async (params?: { skip?: number; limit?: number }) => {
-  console.warn('Conductores CRUD: endpoint no disponible en backend actual.');
-  return { data: [] };
+  const query = new URLSearchParams();
+  if (params?.skip !== undefined) query.append('skip', String(params.skip));
+  if (params?.limit !== undefined) query.append('limit', String(params.limit));
+  const url = `${API_ENDPOINTS.CONDUCTORES.LISTAR}?${query.toString()}`;
+  const { data } = await api.get(url);
+  return data;
 };
 
-export const obtenerConductor = async (driverId: string) => {
-  console.warn('Conductores CRUD: obtenerConductor no disponible.');
-  return null;
+export const obtenerConductor = async (driverId: string | number) => {
+  const { data } = await api.get(API_ENDPOINTS.CONDUCTORES.OBTENER(driverId));
+  return data;
 };
 
 export const crearConductor = async (payload: any) => {
-  console.warn('Conductores CRUD: crearConductor no disponible.');
-  return null;
+  const { data } = await api.post(API_ENDPOINTS.CONDUCTORES.CREAR, payload);
+  return data;
 };
 
-export const actualizarConductor = async (driverId: string, payload: any) => {
-  console.warn('Conductores CRUD: actualizarConductor no disponible.');
-  return null;
+export const actualizarConductor = async (driverId: string | number, payload: any) => {
+  const { data } = await api.patch(API_ENDPOINTS.CONDUCTORES.ACTUALIZAR(driverId), payload);
+  return data;
 };
 
-// ==================== TURNOS (Shifts - placeholders) ====================
-
-export const iniciarTurno = async (driverId: string, truckPlate: string) => {
-  console.warn('Turnos: iniciarTurno no disponible en backend actual.');
-  return null;
+export const eliminarConductor = async (driverId: string | number) => {
+  await api.delete(API_ENDPOINTS.CONDUCTORES.ELIMINAR(driverId));
 };
 
-export const finalizarTurno = async (shiftId: string) => {
-  console.warn('Turnos: finalizarTurno no disponible en backend actual.');
-  return null;
+// ==================== RUTAS DEL CONDUCTOR ====================
+
+export const misRutasTodas = async () => {
+  const { data } = await api.get(API_ENDPOINTS.CONDUCTORES.MIS_RUTAS_TODAS);
+  return data;
 };
 
-// ==================== CAMIONES (Trucks - placeholders) ====================
-
-export const listarCamiones = async (params?: { status?: string; type?: string }) => {
-  console.warn('Camiones: endpoint no disponible en backend actual.');
-  return { data: [] };
-};
-
-export const crearCamion = async (payload: { plate: string; type: string; status?: string }) => {
-  console.warn('Camiones: crearCamion no disponible.');
-  return null;
+export const miRutaActual = async () => {
+  const { data } = await api.get(API_ENDPOINTS.CONDUCTORES.MIS_RUTAS_ACTUAL);
+  return data;
 };
 
 export default {
@@ -52,9 +48,8 @@ export default {
   obtenerConductor,
   crearConductor,
   actualizarConductor,
-  iniciarTurno,
-  finalizarTurno,
-  listarCamiones,
-  crearCamion,
+  eliminarConductor,
+  misRutasTodas,
+  miRutaActual,
 };
 

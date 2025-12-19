@@ -44,21 +44,15 @@ interface Incident {
   id: number;
   tipo: string;
   descripcion: string;
+  gravedad: number;
   estado: string;
-  prioridad: string;
-  ubicacion: {
-    type: string;
-    coordinates: [number, number];
-  };
   lat?: number;
   lon?: number;
-  direccion: string;
-  reportado_por?: {
-    email: string;
-    display_name: string;
-  };
-  created_at: string;
-  updated_at: string;
+  zona: string;
+  usuario_id?: number;
+  reportado_en?: string;
+  created_at?: string;
+}
 }
 
 const INCIDENT_TYPES = [
@@ -68,18 +62,18 @@ const INCIDENT_TYPES = [
   { value: 'OTRO', label: 'Otro' },
 ];
 
-const PRIORITY_LEVELS = [
-  { value: 'BAJA', label: 'Baja', color: '#4caf50' },
-  { value: 'MEDIA', label: 'Media', color: '#ff9800' },
-  { value: 'ALTA', label: 'Alta', color: '#f44336' },
-  { value: 'CRITICA', label: 'Crítica', color: '#d32f2f' },
+const GRAVEDAD_LEVELS = [
+  { value: 1, label: 'Baja', color: '#4caf50' },
+  { value: 2, label: 'Media', color: '#ff9800' },
+  { value: 3, label: 'Alta', color: '#f44336' },
+  { value: 4, label: 'Crítica', color: '#d32f2f' },
 ];
 
 const STATUS_OPTIONS = [
-  { value: 'REPORTADA', label: 'Reportada', color: '#757575' },
-  { value: 'EN_PROCESO', label: 'En Proceso', color: '#2196f3' },
-  { value: 'RESUELTA', label: 'Resuelta', color: '#4caf50' },
-  { value: 'CANCELADA', label: 'Cancelada', color: '#f44336' },
+  { value: 'abierta', label: 'Abierta', color: '#757575' },
+  { value: 'en_proceso', label: 'En Proceso', color: '#2196f3' },
+  { value: 'resuelta', label: 'Resuelta', color: '#4caf50' },
+  { value: 'cancelada', label: 'Cancelada', color: '#f44336' },
 ];
 
 const IncidentsPage: React.FC = () => {
@@ -90,8 +84,8 @@ const IncidentsPage: React.FC = () => {
   const [formData, setFormData] = useState({
     tipo: 'ACUMULACION',
     descripcion: '',
-    prioridad: 'MEDIA',
-    direccion: '',
+    gravedad: 2,
+    zona: 'Latacunga',
     latitud: -0.9346,
     longitud: -78.6156,
   });
@@ -119,12 +113,10 @@ const IncidentsPage: React.FC = () => {
       const payload = {
         tipo: formData.tipo,
         descripcion: formData.descripcion,
-        prioridad: formData.prioridad,
-        direccion: formData.direccion,
-        ubicacion: {
-          type: 'Point',
-          coordinates: [formData.longitud, formData.latitud],
-        },
+        gravedad: Number(formData.gravedad),
+        lat: formData.latitud,
+        lon: formData.longitud,
+        zona: formData.zona,
       };
       
       await IncidenciasService.crearIncidencia(payload);
@@ -160,16 +152,16 @@ const IncidentsPage: React.FC = () => {
     setFormData({
       tipo: 'ACUMULACION',
       descripcion: '',
-      prioridad: 'MEDIA',
-      direccion: '',
+      gravedad: 2,
+      zona: 'Latacunga',
       latitud: -0.9346,
       longitud: -78.6156,
     });
     setSelectedIncident(null);
   };
 
-  const getPriorityColor = (prioridad: string) => {
-    return PRIORITY_LEVELS.find(p => p.value === prioridad)?.color || '#757575';
+  const getGravedadColor = (gravedad: number) => {
+    return GRAVEDAD_LEVELS.find(p => p.value === gravedad)?.color || '#757575';
   };
 
   const getStatusColor = (estado: string) => {
@@ -230,8 +222,8 @@ const IncidentsPage: React.FC = () => {
               />
               {incidents
                 .map((incident) => {
-                  const lat = incident.ubicacion?.coordinates?.[1] ?? incident.lat;
-                  const lon = incident.ubicacion?.coordinates?.[0] ?? incident.lon;
+                  const lat = incident.lat;
+                  const lon = incident.lon;
                   if (lat === undefined || lon === undefined) return null;
                   return (
                     <Marker
@@ -244,11 +236,11 @@ const IncidentsPage: React.FC = () => {
                         {incident.descripcion}
                         <br />
                         <Chip
-                          label={incident.prioridad || 'MEDIA'}
+                          label={`Gravedad ${incident.gravedad ?? 1}`}
                           size="small"
                           sx={{
                             mt: 1,
-                            bgcolor: getPriorityColor(incident.prioridad || 'MEDIA'),
+                            bgcolor: getGravedadColor(incident.gravedad ?? 1),
                             color: 'white',
                           }}
                         />
@@ -274,7 +266,7 @@ const IncidentsPage: React.FC = () => {
                         variant="outlined"
                       />
                       <Chip
-                        label={incident.prioridad}
+                        label={`Gravedad ${incident.gravedad}`}
                         size="small"
                         sx={{
                           bgcolor: getPriorityColor(incident.prioridad),
@@ -290,7 +282,7 @@ const IncidentsPage: React.FC = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                       <LocationIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
                       <Typography variant="caption" color="text.secondary">
-                        {incident.direccion}
+                        Zona: {incident.zona}
                       </Typography>
                     </Box>
 
@@ -304,7 +296,7 @@ const IncidentsPage: React.FC = () => {
                     />
 
                     <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
-                      Reportado: {new Date(incident.created_at).toLocaleDateString()}
+                      Creado: {new Date(incident.created_at).toLocaleDateString()}
                     </Typography>
                   </CardContent>
                   
@@ -377,15 +369,15 @@ const IncidentsPage: React.FC = () => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 select
                 fullWidth
-                label="Prioridad"
-                value={formData.prioridad}
-                onChange={(e) => setFormData({ ...formData, prioridad: e.target.value })}
+                label="Gravedad"
+                value={formData.gravedad}
+                onChange={(e) => setFormData({ ...formData, gravedad: Number(e.target.value) })}
               >
-                {PRIORITY_LEVELS.map((level) => (
+                {GRAVEDAD_LEVELS.map((level) => (
                   <MenuItem key={level.value} value={level.value}>
                     {level.label}
                   </MenuItem>
@@ -393,12 +385,12 @@ const IncidentsPage: React.FC = () => {
               </TextField>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Dirección"
-                value={formData.direccion}
-                onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
+                label="Zona"
+                value={formData.zona}
+                onChange={(e) => setFormData({ ...formData, zona: e.target.value })}
               />
             </Grid>
 

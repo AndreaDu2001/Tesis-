@@ -20,9 +20,6 @@ const API_PREFIX = '/api';
 // En desarrollo local, usa REACT_APP_API_BASE=http://localhost:8000
 
 const AUTH_SERVICE = API_BASE;
-const FLEET_SERVICE = API_BASE;
-const INCIDENT_SERVICE = API_BASE;
-
 const API_V1 = API_PREFIX;
 
 export const API_BASE_URL = `${API_BASE}${API_PREFIX}`;
@@ -35,72 +32,56 @@ export const API_ENDPOINTS = {
     ME: `${AUTH_SERVICE}${API_V1}/auth/me`,
   },
 
-  // ==================== FLOTAS / RUTAS ====================
+  // ==================== CONDUCTORES ====================
   CONDUCTORES: {
-    // Rutas asociadas a conductores
-    MIS_RUTAS_TODAS: `${FLEET_SERVICE}${API_V1}/conductores/mis-rutas/todas`,
-    MIS_RUTAS_ACTUAL: `${FLEET_SERVICE}${API_V1}/conductores/mis-rutas/actual`,
-    INICIAR_RUTA: `${FLEET_SERVICE}${API_V1}/conductores/iniciar-ruta`,
-    FINALIZAR_RUTA: `${FLEET_SERVICE}${API_V1}/conductores/finalizar-ruta`,
-    DISPONIBLES: `${FLEET_SERVICE}${API_V1}/conductores/disponibles`,
-    ASIGNACIONES: `${FLEET_SERVICE}${API_V1}/conductores/asignaciones/`,
-    ASIGNACIONES_POR_RUTA: (id: string) => `${FLEET_SERVICE}${API_V1}/conductores/asignaciones/ruta/${id}`,
-    // CRUD placeholders (no hay endpoints en backend actual)
-    LISTAR: '#',
-    CREAR: '#',
-    OBTENER: (_id: string) => '#',
-    ACTUALIZAR: (_id: string) => '#',
-    ELIMINAR: (_id: string) => '#',
-    // Camiones
-    TRUCKS_LISTAR: '#',
-    TRUCKS_CREAR: '#',
-    TRUCKS_OBTENER: (_id: string) => '#',
-    TRUCKS_ACTUALIZAR: (_id: string) => '#',
-    TRUCKS_ELIMINAR: (_id: string) => '#',
-    // Turnos
-    CLOCK_IN: '#',
-    CLOCK_OUT: '#',
-    ACTIVE_SHIFT: (_driverId: string) => '#',
+    LISTAR: `${AUTH_SERVICE}${API_V1}/conductores/`,
+    CREAR: `${AUTH_SERVICE}${API_V1}/conductores/`,
+    OBTENER: (id: string | number) => `${AUTH_SERVICE}${API_V1}/conductores/${id}`,
+    ACTUALIZAR: (id: string | number) => `${AUTH_SERVICE}${API_V1}/conductores/${id}`,
+    ELIMINAR: (id: string | number) => `${AUTH_SERVICE}${API_V1}/conductores/${id}`,
+    MIS_RUTAS_TODAS: `${AUTH_SERVICE}${API_V1}/conductores/mis-rutas/todas`,
+    MIS_RUTAS_ACTUAL: `${AUTH_SERVICE}${API_V1}/conductores/mis-rutas/actual`,
   },
 
   // ==================== INCIDENTES ====================
   INCIDENCIAS: {
-    LISTAR: `${INCIDENT_SERVICE}${API_V1}/incidencias/`,
-    CREAR: `${INCIDENT_SERVICE}${API_V1}/incidencias/`,
-    OBTENER: (id: string) => `${INCIDENT_SERVICE}${API_V1}/incidencias/${id}`,
-    ACTUALIZAR: (id: string) => `${INCIDENT_SERVICE}${API_V1}/incidencias/${id}`,
-    ELIMINAR: (id: string) => `${INCIDENT_SERVICE}${API_V1}/incidencias/${id}`,
-    STATS: `${INCIDENT_SERVICE}${API_V1}/incidencias/stats`,
-    UMBRAL: (zona: string) => `${INCIDENT_SERVICE}${API_V1}/incidencias/zona/${zona}/umbral`,
+    LISTAR: `${AUTH_SERVICE}${API_V1}/incidencias/`,
+    CREAR: `${AUTH_SERVICE}${API_V1}/incidencias/`,
+    OBTENER: (id: string | number) => `${AUTH_SERVICE}${API_V1}/incidencias/${id}`,
+    ACTUALIZAR: (id: string | number) => `${AUTH_SERVICE}${API_V1}/incidencias/${id}`,
+    ELIMINAR: (id: string | number) => `${AUTH_SERVICE}${API_V1}/incidencias/${id}`,
+    STATS: `${AUTH_SERVICE}${API_V1}/incidencias/stats`,
   },
 
-  // ==================== OPERACIONES (Operations Service: 8085) ====================
+  // ==================== RUTAS ====================
+  RUTAS: {
+    LISTAR: `${AUTH_SERVICE}${API_V1}/rutas/`,
+    CREAR: `${AUTH_SERVICE}${API_V1}/rutas/`,
+    OBTENER: (id: string | number) => `${AUTH_SERVICE}${API_V1}/rutas/${id}`,
+    ACTUALIZAR: (id: string | number) => `${AUTH_SERVICE}${API_V1}/rutas/${id}`,
+    ELIMINAR: (id: string | number) => `${AUTH_SERVICE}${API_V1}/rutas/${id}`,
+    POR_ZONA: (zona: string) => `${AUTH_SERVICE}${API_V1}/rutas/zona/${zona}`,
+  },
+
+  // ==================== TAREAS ====================
   TASKS: {
-    // Placeholder sin backend
-    LISTAR: '#',
-    OBTENER: (_id: string) => '#',
-    INICIAR: (_id: string) => '#',
-    FINALIZAR: (_id: string) => '#',
-    COMPLETAR_PARADA: (_stopId: string) => '#',
+    LISTAR: `${AUTH_SERVICE}${API_V1}/tasks/`,
+    CREAR: `${AUTH_SERVICE}${API_V1}/tasks/`,
+    ACTUALIZAR: (id: string | number) => `${AUTH_SERVICE}${API_V1}/tasks/${id}`,
+    COMPLETAR: (id: string | number) => `${AUTH_SERVICE}${API_V1}/tasks/${id}/complete`,
   },
 
   // ==================== NOTIFICACIONES ====================
   NOTIFICATIONS: {
-    // Placeholder sin backend
-    LISTAR: '#',
-    LEER: (_id: string) => '#',
-    LEER_TODAS: '#',
+    LISTAR: `${AUTH_SERVICE}${API_V1}/notifications/`,
+    LEER: (id: string | number) => `${AUTH_SERVICE}${API_V1}/notifications/${id}/read`,
+    LEER_TODAS: `${AUTH_SERVICE}${API_V1}/notifications/read-all`,
   },
 
   // ==================== REPORTES ====================
   REPORTS: {
-    ESTADISTICAS: `${INCIDENT_SERVICE}${API_V1}/reports/statistics/`,
-    METRICAS_ZONA: (zoneId: number) => `${INCIDENT_SERVICE}${API_V1}/incidencias/zona/${zoneId}/umbral`,
-  },
-
-  // ==================== SCHEDULER (Planning) ====================
-  SCHEDULER: {
-    METRICAS_ZONA: (zoneId: number) => `${FLEET_SERVICE}${API_V1}/zones/${zoneId}/metrics`,
+    ESTADISTICAS: `${AUTH_SERVICE}${API_V1}/reports/statistics/`,
+    EXPORTAR: `${AUTH_SERVICE}${API_V1}/reports/export/`,
   },
 };
 

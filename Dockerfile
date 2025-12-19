@@ -17,8 +17,8 @@ RUN npm ci --legacy-peer-deps 2>&1 | tail -10
 COPY frontend ./
 
 # Variables de entorno para build (CRÍTICO: deben estar en stage 1)
-ARG REACT_APP_API_URL=https://epagal-backend-routing-latest.onrender.com
-ENV REACT_APP_API_URL=${REACT_APP_API_URL}
+ARG REACT_APP_API_BASE=https://epagal-backend-routing-latest.onrender.com
+ENV REACT_APP_API_BASE=${REACT_APP_API_BASE}
 ENV NODE_ENV=production
 ENV CI=false
 

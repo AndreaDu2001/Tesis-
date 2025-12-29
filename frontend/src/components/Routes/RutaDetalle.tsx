@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Paper,
@@ -23,7 +23,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import * as routesService from '../../services/routesService';
 import { dibujarRutaRoja } from '../../services/routingMap';
 
 // Fix para ícono de leaflet en React
@@ -74,11 +73,7 @@ export default function RutaDetalle() {
   const [data, setData] = useState<RutaDetalles | null>(null);
   const mapRef = React.useRef<L.Map | null>(null);
 
-  useEffect(() => {
-    cargarDetalles();
-  }, [rutaId]);
-
-  const cargarDetalles = async () => {
+  const cargarDetalles = useCallback(async () => {
     if (!rutaId) return;
     try {
       setLoading(true);
@@ -88,6 +83,14 @@ export default function RutaDetalle() {
       setError('Los detalles de rutas se muestran como órdenes de trabajo en el Operations Service');
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Error al cargar detalles de ruta');
+    } finally {
+      setLoading(false);
+    }
+  }, [rutaId]);
+
+  useEffect(() => {
+    cargarDetalles();
+  }, [rutaId, cargarDetalles]);
       console.error('Error:', err);
     } finally {
       setLoading(false);

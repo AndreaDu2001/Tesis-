@@ -3,32 +3,26 @@ import { API_ENDPOINTS } from '../config/api';
 
 export interface Notificacion {
   id: number;
-  tipo: 'info' | 'warning' | 'error' | 'success';
-  titulo: string;
-  mensaje: string;
-  leida: boolean;
-  fecha_creacion: string;
-  usuario_id: number;
-  datos_extra?: any;
+  type: 'info' | 'warning' | 'error' | 'success';
+  title: string;
+  message: string;
+  read: boolean;
+  created_at: string;
 }
 
-export const listarNotificaciones = async (params?: { leida?: boolean; limit?: number; }) => {
-  console.warn('Notificaciones: endpoint no disponible en backend actual, devolviendo placeholder.');
-  return {
-    total: 0,
-    no_leidas: 0,
-    notificaciones: [] as Notificacion[],
-  };
+export const listarNotificaciones = async () => {
+  const { data } = await api.get(API_ENDPOINTS.NOTIFICATIONS.LISTAR);
+  return data;
 };
 
 export const marcarComoLeida = async (id: string | number) => {
-  console.warn('Notificaciones: marcarComoLeida no disponible en backend actual.');
-  return null;
+  const { data } = await api.patch(API_ENDPOINTS.NOTIFICATIONS.LEER(id), {});
+  return data;
 };
 
 export const marcarTodasLeidas = async () => {
-  console.warn('Notificaciones: marcarTodasLeidas no disponible en backend actual.');
-  return null;
+  const { data } = await api.post(API_ENDPOINTS.NOTIFICATIONS.LEER_TODAS, {});
+  return data;
 };
 
 export default {

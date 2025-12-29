@@ -1,8 +1,8 @@
 """
 Modelos SQLAlchemy para la base de datos
 """
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, ForeignKey  # type: ignore[import]
+from sqlalchemy.orm import relationship  # type: ignore[import]
 from datetime import datetime
 from app.database import Base
 

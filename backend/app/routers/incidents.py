@@ -1,10 +1,10 @@
 """
 Router alias en inglés para incidencias (/api/incidents)
 """
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import List, Optional
+from fastapi import APIRouter, Depends  # type: ignore[import]
+from sqlalchemy.orm import Session  # type: ignore[import]
+from pydantic import BaseModel  # type: ignore[import]
+from typing import Annotated, List
 from datetime import datetime
 from app.database import get_db
 
@@ -26,7 +26,7 @@ class IncidentList(BaseModel):
 
 
 @router.get("/", response_model=IncidentList)
-async def list_incidents(db: Session = Depends(get_db)):
+async def list_incidents(db: Annotated[Session, Depends(get_db)]):
     """Lista de incidencias (alias)"""
     return {
         "total": 0,
@@ -35,7 +35,7 @@ async def list_incidents(db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=Incident)
-async def create_incident(payload: dict, db: Session = Depends(get_db)):
+async def create_incident(payload: dict, db: Annotated[Session, Depends(get_db)]):
     """Crear incidencia (alias)"""
     return Incident(
         id=1,
@@ -47,7 +47,7 @@ async def create_incident(payload: dict, db: Session = Depends(get_db)):
 
 
 @router.get("/{incident_id}", response_model=Incident)
-async def get_incident(incident_id: int, db: Session = Depends(get_db)):
+async def get_incident(incident_id: int, db: Annotated[Session, Depends(get_db)]):
     """Obtener incidencia (alias)"""
     return Incident(
         id=incident_id,
@@ -59,7 +59,7 @@ async def get_incident(incident_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch("/{incident_id}", response_model=Incident)
-async def update_incident(incident_id: int, payload: dict, db: Session = Depends(get_db)):
+async def update_incident(incident_id: int, payload: dict, db: Annotated[Session, Depends(get_db)]):
     """Actualizar incidencia (alias)"""
     return Incident(
         id=incident_id,
@@ -71,6 +71,6 @@ async def update_incident(incident_id: int, payload: dict, db: Session = Depends
 
 
 @router.delete("/{incident_id}")
-async def delete_incident(incident_id: int, db: Session = Depends(get_db)):
+async def delete_incident(incident_id: int, db: Annotated[Session, Depends(get_db)]):
     """Eliminar incidencia (alias)"""
     return {"message": "Incidencia eliminada", "id": incident_id}

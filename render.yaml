@@ -3,6 +3,7 @@ services:
   - type: web
     name: epagal-frontend
     plan: free
+    branch: appmod/python-migration-20251218221037
     dockerfile: ./Dockerfile
     dockerContext: ./
     healthCheckPath: /
@@ -10,7 +11,7 @@ services:
     ports:
       - port: 3000
     envVars:
-      - key: REACT_APP_API_URL
-        value: "https://epagal-backend-routing-latest.onrender.com"
+        - key: REACT_APP_API_BASE
+          value: "https://epagal-backend-routing-latest.onrender.com"
       - key: NODE_ENV
         value: "production"

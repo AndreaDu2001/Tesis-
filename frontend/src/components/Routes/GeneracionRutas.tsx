@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -18,7 +18,6 @@ import {
   Divider,
 } from '@mui/material';
 import { Add, CheckCircle, Warning, Info } from '@mui/icons-material';
-import routesService from '../../services/routesService';
 import incidenciasService from '../../services/incidenciasService';
 
 export default function GeneracionRutas() {
@@ -26,21 +25,20 @@ export default function GeneracionRutas() {
   const [zona, setZona] = useState<'oriental' | 'occidental'>('oriental');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [rutaGenerada, setRutaGenerada] = useState<any | null>(null);
   const [umbralInfo, setUmbralInfo] = useState<any | null>(null);
 
-  useEffect(() => {
-    verificarUmbral();
-  }, [zona]);
-
-  const verificarUmbral = async () => {
+  const verificarUmbral = useCallback(async () => {
     try {
       const data = await incidenciasService.verificarUmbralZona(zona);
       setUmbralInfo(data);
     } catch (err) {
       console.error('Error verificando umbral:', err);
     }
-  };
+  }, [zona]);
+
+  useEffect(() => {
+    verificarUmbral();
+  }, [verificarUmbral, zona]);
 
   const handleGenerarRuta = async () => {
     try {

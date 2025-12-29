@@ -114,9 +114,11 @@ const IncidentsPage: React.FC = () => {
         tipo: formData.tipo,
         descripcion: formData.descripcion,
         gravedad: Number(formData.gravedad),
-        lat: formData.latitud,
-        lon: formData.longitud,
+        lat: formData.latitud || null,
+        lon: formData.longitud || null,
         zona: formData.zona,
+        foto_url: null,
+        usuario_id: 1,
       };
       
       await IncidenciasService.crearIncidencia(payload);

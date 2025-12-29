@@ -91,11 +91,6 @@ export default function RutaDetalle() {
   useEffect(() => {
     cargarDetalles();
   }, [rutaId, cargarDetalles]);
-      console.error('Error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (data && mapRef.current && data.puntos.length > 0) {

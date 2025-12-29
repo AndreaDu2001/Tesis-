@@ -53,7 +53,6 @@ interface Incident {
   reportado_en?: string;
   created_at?: string;
 }
-}
 
 const INCIDENT_TYPES = [
   { value: 'ACUMULACION', label: 'Acumulación de Residuos' },
@@ -157,7 +156,6 @@ const IncidentsPage: React.FC = () => {
       latitud: -0.9346,
       longitud: -78.6156,
     });
-    setSelectedIncident(null);
   };
 
   const getGravedadColor = (gravedad: number) => {
@@ -269,7 +267,7 @@ const IncidentsPage: React.FC = () => {
                         label={`Gravedad ${incident.gravedad}`}
                         size="small"
                         sx={{
-                          bgcolor: getPriorityColor(incident.prioridad),
+                          bgcolor: getGravedadColor(incident.gravedad),
                           color: 'white',
                         }}
                       />

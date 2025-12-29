@@ -31,6 +31,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import IncidenciasService from '../../services/incidenciasService';
+import { toErrorMessage } from '../../services/errorUtils';
 
 // Fix para íconos de Leaflet en React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -100,7 +101,7 @@ const IncidentsPage: React.FC = () => {
       const data = await IncidenciasService.listarIncidencias();
       setIncidents(Array.isArray(data) ? data : (data.results || data));
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al cargar incidencias');
+      setError(toErrorMessage(err) || 'Error al cargar incidencias');
       console.error('Error loading incidents:', err);
     } finally {
       setLoading(false);
@@ -123,7 +124,7 @@ const IncidentsPage: React.FC = () => {
       resetForm();
       loadIncidents();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al crear incidencia');
+      setError(toErrorMessage(err) || 'Error al crear incidencia');
     }
   };
 
@@ -132,7 +133,7 @@ const IncidentsPage: React.FC = () => {
       await IncidenciasService.actualizarIncidencia(id, { estado });
       loadIncidents();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al actualizar estado');
+      setError(toErrorMessage(err) || 'Error al actualizar estado');
     }
   };
 
@@ -143,7 +144,7 @@ const IncidentsPage: React.FC = () => {
       await IncidenciasService.eliminarIncidencia(id);
       loadIncidents();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al eliminar incidencia');
+      setError(toErrorMessage(err) || 'Error al eliminar incidencia');
     }
   };
 

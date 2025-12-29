@@ -294,7 +294,7 @@ const IncidentsPage: React.FC = () => {
                     />
 
                     <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
-                      Creado: {new Date(incident.created_at).toLocaleDateString()}
+                      Creado: {incident.created_at ? new Date(incident.created_at).toLocaleDateString() : 'N/D'}
                     </Typography>
                   </CardContent>
                   

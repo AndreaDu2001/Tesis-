@@ -11,18 +11,34 @@ export interface Notificacion {
 }
 
 export const listarNotificaciones = async () => {
-  const { data } = await api.get(API_ENDPOINTS.NOTIFICATIONS.LISTAR);
-  return data;
+  try {
+    const { data } = await api.get(API_ENDPOINTS.NOTIFICATIONS.LISTAR);
+    if (data && Array.isArray(data.notifications)) {
+      return { total: data.total ?? data.notifications.length, unread: data.unread ?? 0, notificaciones: data.notifications };
+    }
+    return { total: 0, unread: 0, notificaciones: [] };
+  } catch (err) {
+    // Backend actual no expone /notifications; devolver vacío
+    return { total: 0, unread: 0, notificaciones: [] };
+  }
 };
 
 export const marcarComoLeida = async (id: string | number) => {
-  const { data } = await api.patch(API_ENDPOINTS.NOTIFICATIONS.LEER(id), {});
-  return data;
+  try {
+    const { data } = await api.patch(API_ENDPOINTS.NOTIFICATIONS.LEER(id), {});
+    return data;
+  } catch {
+    return null;
+  }
 };
 
 export const marcarTodasLeidas = async () => {
-  const { data } = await api.post(API_ENDPOINTS.NOTIFICATIONS.LEER_TODAS, {});
-  return data;
+  try {
+    const { data } = await api.post(API_ENDPOINTS.NOTIFICATIONS.LEER_TODAS, {});
+    return data;
+  } catch {
+    return null;
+  }
 };
 
 export default {

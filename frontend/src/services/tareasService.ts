@@ -11,8 +11,17 @@ export interface Tarea {
 }
 
 export const listarTareas = async () => {
-  const { data } = await api.get(API_ENDPOINTS.TASKS.LISTAR);
-  return data;
+  try {
+    const { data } = await api.get(API_ENDPOINTS.TASKS.LISTAR);
+    // Adaptar a estructura esperada por UI
+    if (data && Array.isArray(data.tasks)) {
+      return { total: data.total ?? data.tasks.length, tareas: data.tasks };
+    }
+    return { total: 0, tareas: [] };
+  } catch (err) {
+    // Backend actual no expone /tasks; devolver vacío
+    return { total: 0, tareas: [] };
+  }
 };
 
 export const obtenerTarea = async (id: string | number) => {

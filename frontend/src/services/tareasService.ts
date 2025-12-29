@@ -27,7 +27,7 @@ export const listarTareas = async () => {
 export const obtenerTarea = async (id: string | number) => {
   // Backend no expone GET /tasks/{id}; se filtra desde el listado
   const list = await listarTareas();
-  return list.tasks?.find((t: Tarea) => String(t.id) === String(id)) || null;
+  return (list as any).tareas?.find((t: Tarea) => String(t.id) === String(id)) || null;
 };
 
 export const crearTarea = async (payload: Partial<Tarea>) => {

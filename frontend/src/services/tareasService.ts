@@ -18,8 +18,11 @@ export const listarTareas = async () => {
       return { total: data.total ?? data.tasks.length, tareas: data.tasks };
     }
     return { total: 0, tareas: [] };
-  } catch (err) {
-    // Backend actual no expone /tasks; devolver vacío
+  } catch (err: any) {
+    // Backend actual no expone /tasks; devolver vacío (silenciar error 404)
+    if (err?.response?.status !== 404) {
+      console.error('Error inesperado en listarTareas:', err);
+    }
     return { total: 0, tareas: [] };
   }
 };

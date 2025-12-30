@@ -20,8 +20,11 @@ export const reporteEstadisticas = async (params?: { fecha_inicio?: string; fech
     const url = `${API_ENDPOINTS.REPORTS.ESTADISTICAS}?${queryParams.toString()}`;
     const { data } = await api.get(url);
     return data as ReporteEstadisticas;
-  } catch (err) {
-    // Backend actual no expone estadísticas; devolver placeholder
+  } catch (err: any) {
+    // Backend actual no expone estadísticas; devolver placeholder (silenciar error 404)
+    if (err?.response?.status !== 404) {
+      console.error('Error inesperado en reporteEstadisticas:', err);
+    }
     return {
       period: `${params?.fecha_inicio || 'N/A'} - ${params?.fecha_fin || 'N/A'}`,
       total_incidencias: 0,

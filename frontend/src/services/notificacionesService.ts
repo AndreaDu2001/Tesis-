@@ -17,8 +17,11 @@ export const listarNotificaciones = async () => {
       return { total: data.total ?? data.notifications.length, unread: data.unread ?? 0, notificaciones: data.notifications };
     }
     return { total: 0, unread: 0, notificaciones: [] };
-  } catch (err) {
-    // Backend actual no expone /notifications; devolver vacío
+  } catch (err: any) {
+    // Backend actual no expone /notifications; devolver vacío (silenciar error 404)
+    if (err?.response?.status !== 404) {
+      console.error('Error inesperado en listarNotificaciones:', err);
+    }
     return { total: 0, unread: 0, notificaciones: [] };
   }
 };

@@ -112,23 +112,29 @@ const IncidentsPage: React.FC = () => {
 
   const handleCreateIncident = async () => {
     try {
+      const lat = typeof formData.latitud === 'number' && !isNaN(formData.latitud) ? formData.latitud : null;
+      const lon = typeof formData.longitud === 'number' && !isNaN(formData.longitud) ? formData.longitud : null;
+      
       const payload = {
         tipo: formData.tipo,
-        descripcion: formData.descripcion,
-        gravedad: Number(formData.gravedad),
-        lat: formData.latitud || null,
-        lon: formData.longitud || null,
-        zona: formData.zona,
+        descripcion: formData.descripcion.trim(),
+        gravedad: Number(formData.gravedad) || 2,
+        lat,
+        lon,
+        zona: formData.zona.trim(),
         foto_url: null,
         usuario_id: 1,
       };
       
+      console.log('[DEBUG] Payload enviado:', payload);
       await IncidenciasService.crearIncidencia(payload);
       setOpenDialog(false);
       resetForm();
       loadIncidents();
     } catch (err: any) {
-      setError(toErrorMessage(err) || 'Error al crear incidencia');
+      const errorMsg = toErrorMessage(err) || 'Error al crear incidencia';
+      console.error('[ERROR] Crear incidencia:', err, errorMsg);
+      setError(errorMsg);
     }
   };
 

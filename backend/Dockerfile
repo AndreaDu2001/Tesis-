@@ -26,8 +26,5 @@ ENV PYTHONUNBUFFERED=1
 # Exponer puerto
 EXPOSE 8000
 
-# Script de inicio
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
+# Comando de inicio directo
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]

@@ -1,28 +1,30 @@
 """
 Modelos SQLAlchemy para la base de datos
 """
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, ForeignKey  # type: ignore[import]
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, ForeignKey, Text  # type: ignore[import]
+from sqlalchemy.dialects.postgresql import UUID  # type: ignore[import]
 from sqlalchemy.orm import relationship  # type: ignore[import]
 from datetime import datetime
 from app.database import Base
+import uuid
 
 
 class User(Base):
-    """Modelo de usuario (con autenticación)"""
+    """Modelo de usuario (coincide con esquema Neon)"""
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    username = Column(String, unique=True, index=True, nullable=False)
-    password_hash = Column(String, nullable=False)
-    is_active = Column(Boolean, default=True)
-    is_admin = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    last_login_at = Column(DateTime, nullable=True)
-
-    conductores = relationship("Conductor", back_populates="usuario")
-    incidencias = relationship("Incidencia", back_populates="usuario")
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = Column(Text, unique=True, index=True)
+    username = Column(Text, unique=True, index=True, nullable=False)
+    password_hash = Column(String(128))
+    role = Column(Text, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True))
+    updated_at = Column(DateTime(timezone=True))
+    deleted_at = Column(DateTime(timezone=True))
+    phone = Column(Text, unique=True)
+    display_name = Column(Text)
+    status = Column(Text, default='ACTIVE')
 
 
 class Conductor(Base):
@@ -38,11 +40,10 @@ class Conductor(Base):
     licencia_tipo = Column(String, nullable=False)  # C, D, E, etc
     zona_preferida = Column(String, nullable=True)
     estado = Column(String, default="disponible")  # disponible, ocupado, descansa
-    usuario_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    usuario_id = Column(Integer, nullable=True)  # Sin FK (users.id es UUID)
     fecha_contratacion = Column(DateTime, default=datetime.utcnow)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    usuario = relationship("User", back_populates="conductores")
     vehiculos = relationship("Vehiculo", back_populates="conductor")
     asignaciones = relationship("Asignacion", back_populates="conductor")
 
@@ -81,26 +82,24 @@ class Ruta(Base):
 
 
 class Incidencia(Base):
-    """Modelo de incidencia/reporte ciudadano"""
+    """Modelo de incidencia/reporte ciudadano (coincide con Neon)"""
     __tablename__ = "incidencias"
 
     id = Column(Integer, primary_key=True, index=True)
-    tipo = Column(String, nullable=False)  # basura, daño, otro, etc
-    gravedad = Column(Integer, default=1)  # 1-5
-    descripcion = Column(String, nullable=False)
-    foto_url = Column(String, nullable=True)
-    lat = Column(Float, nullable=True)
-    lon = Column(Float, nullable=True)
-    zona = Column(String, nullable=False)
-    estado = Column(String, default="abierta")  # abierta, asignada, completada, cancelada
+    tipo = Column(String(20), nullable=False)
+    gravedad = Column(Integer, nullable=False)
+    descripcion = Column(Text)
+    foto_url = Column(String(255))
+    lat = Column(Float, nullable=False)
+    lon = Column(Float, nullable=False)
+    zona = Column(String(10))
+    estado = Column(String(15))
     ventana_inicio = Column(DateTime, nullable=True)
     ventana_fin = Column(DateTime, nullable=True)
-    reportado_en = Column(DateTime, default=datetime.utcnow)
-    usuario_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    usuario = relationship("User", back_populates="incidencias")
+    reportado_en = Column(DateTime)
+    usuario_id = Column(Integer)  # Sin FK (users.id es UUID)
+    created_at = Column(DateTime)
+    updated_at = Column(DateTime)
 
 
 class Asignacion(Base):

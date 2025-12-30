@@ -99,7 +99,9 @@ const IncidentsPage: React.FC = () => {
       setLoading(true);
       setError(null);
       const data = await IncidenciasService.listarIncidencias();
-      setIncidents(Array.isArray(data) ? data : (data.results || data));
+      // El backend devuelve un array directo: List[IncidenciaResponse]
+      const incidentsList = Array.isArray(data) ? data : (data?.incidents || data?.results || []);
+      setIncidents(incidentsList);
     } catch (err: any) {
       setError(toErrorMessage(err) || 'Error al cargar incidencias');
       console.error('Error loading incidents:', err);

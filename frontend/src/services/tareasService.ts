@@ -12,17 +12,20 @@ export interface Tarea {
 
 export const listarTareas = async () => {
   try {
-    const { data } = await api.get(API_ENDPOINTS.TASKS.LISTAR);
+    const response = await api.get(API_ENDPOINTS.TASKS.LISTAR);
+    // Si es 404, devolver vacío (endpoint no existe)
+    if (response.status === 404) {
+      return { total: 0, tareas: [] };
+    }
+    const { data } = response;
     // Adaptar a estructura esperada por UI
     if (data && Array.isArray(data.tasks)) {
       return { total: data.total ?? data.tasks.length, tareas: data.tasks };
     }
     return { total: 0, tareas: [] };
   } catch (err: any) {
-    // Backend actual no expone /tasks; devolver vacío (silenciar error 404)
-    if (err?.response?.status !== 404) {
-      console.error('Error inesperado en listarTareas:', err);
-    }
+    // Errores reales (no 404)
+    console.error('Error inesperado en listarTareas:', err);
     return { total: 0, tareas: [] };
   }
 };

@@ -9,9 +9,7 @@ export const listarIncidencias = async (params?: { estado?: string; zona?: strin
   if (params?.skip !== undefined) query.append('skip', String(params.skip));
   if (params?.limit !== undefined) query.append('limit', String(params.limit));
   const url = `${API_ENDPOINTS.INCIDENCIAS.LISTAR}?${query.toString()}`;
-  console.log('[DEBUG] GET incidencias:', url);
   const { data } = await api.get(url);
-  console.log('[DEBUG] Respuesta incidencias:', data);
   return data;
 };
 

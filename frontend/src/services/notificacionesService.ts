@@ -13,15 +13,18 @@ export interface Notificacion {
 export const listarNotificaciones = async () => {
   try {
     const { data } = await api.get(API_ENDPOINTS.NOTIFICATIONS.LISTAR);
+    // Si es 404, devolver vacío (endpoint no existe)
+    if (response.status === 404) {
+      return { total: 0, unread: 0, notificaciones: [] };
+    }
+    const { data } = response;
     if (data && Array.isArray(data.notifications)) {
       return { total: data.total ?? data.notifications.length, unread: data.unread ?? 0, notificaciones: data.notifications };
     }
     return { total: 0, unread: 0, notificaciones: [] };
   } catch (err: any) {
-    // Backend actual no expone /notifications; devolver vacío (silenciar error 404)
-    if (err?.response?.status !== 404) {
-      console.error('Error inesperado en listarNotificaciones:', err);
-    }
+    // Errores reales (no 404)
+    console.error('Error inesperado en listarNotificaciones:', err);
     return { total: 0, unread: 0, notificaciones: [] };
   }
 };

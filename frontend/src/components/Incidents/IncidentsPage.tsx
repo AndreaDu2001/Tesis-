@@ -56,17 +56,15 @@ interface Incident {
 }
 
 const INCIDENT_TYPES = [
-  { value: 'ACUMULACION', label: 'Acumulación de Residuos' },
-  { value: 'CONTENEDOR', label: 'Contenedor Dañado' },
-  { value: 'DERRAME', label: 'Derrame' },
-  { value: 'OTRO', label: 'Otro' },
+  { value: 'acopio', label: 'Punto de Acopio' },
+  { value: 'zona_critica', label: 'Zona Crítica' },
+  { value: 'animal_muerto', label: 'Animal Muerto' },
 ];
 
 const GRAVEDAD_LEVELS = [
   { value: 1, label: 'Baja', color: '#4caf50' },
-  { value: 2, label: 'Media', color: '#ff9800' },
-  { value: 3, label: 'Alta', color: '#f44336' },
-  { value: 4, label: 'Crítica', color: '#d32f2f' },
+  { value: 3, label: 'Media', color: '#ff9800' },
+  { value: 5, label: 'Alta', color: '#f44336' },
 ];
 
 const STATUS_OPTIONS = [
@@ -82,10 +80,10 @@ const IncidentsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [formData, setFormData] = useState({
-    tipo: 'ACUMULACION',
+    tipo: 'acopio',
     descripcion: '',
-    gravedad: 2,
-    zona: 'Latacunga',
+    gravedad: 3,
+    zona: 'occidental',
     latitud: -0.9346,
     longitud: -78.6156,
   });
@@ -223,6 +221,13 @@ const IncidentsPage: React.FC = () => {
             <MapContainer
               center={[-0.9346, -78.6156]}
               zoom={13}
+              maxBounds={[
+                [-1.05, -78.75],  // Esquina suroeste (límite sur y oeste)
+                [-0.82, -78.48]   // Esquina noreste (límite norte y este)
+              ]}
+              maxBoundsViscosity={1.0}
+              minZoom={12}
+              maxZoom={18}
               style={{ height: '350px', width: '100%' }}
             >
               <TileLayer

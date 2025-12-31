@@ -12,7 +12,7 @@ export interface Notificacion {
 
 export const listarNotificaciones = async () => {
   try {
-    const { data } = await api.get(API_ENDPOINTS.NOTIFICATIONS.LISTAR);
+    const response = await api.get(API_ENDPOINTS.NOTIFICATIONS.LISTAR);
     // Si es 404, devolver vacío (endpoint no existe)
     if (response.status === 404) {
       return { total: 0, unread: 0, notificaciones: [] };

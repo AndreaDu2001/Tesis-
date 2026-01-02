@@ -68,9 +68,10 @@ const GRAVEDAD_LEVELS = [
 ];
 
 const STATUS_OPTIONS = [
-  { value: 'abierta', label: 'Abierta', color: '#757575' },
-  { value: 'en_proceso', label: 'En Proceso', color: '#2196f3' },
-  { value: 'resuelta', label: 'Resuelta', color: '#4caf50' },
+  { value: 'pendiente', label: 'Pendiente', color: '#757575' },
+  { value: 'validada', label: 'Validada', color: '#9c27b0' },
+  { value: 'asignada', label: 'Asignada', color: '#2196f3' },
+  { value: 'completada', label: 'Completada', color: '#4caf50' },
   { value: 'cancelada', label: 'Cancelada', color: '#f44336' },
 ];
 

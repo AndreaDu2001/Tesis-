@@ -25,7 +25,7 @@ class IncidenciaResponse(BaseModel):
     ventana_inicio: Optional[datetime] = None
     ventana_fin: Optional[datetime] = None
     reportado_en: datetime
-    usuario_id: int
+    usuario_id: Optional[int] = None
     created_at: datetime
 
     class Config:
@@ -41,6 +41,34 @@ class IncidenciaCreate(BaseModel):
     lon: Optional[float] = None
     zona: str
     usuario_id: int = 1  # Default para testing
+
+
+@router.get("/stats")
+async def estadisticas(db: Annotated[Session, Depends(get_db)]):
+    """Estadísticas de incidencias"""
+    total = db.query(Incidencia).count()
+    
+    # Contar por estado
+    estados = db.query(Incidencia.estado).distinct().all()
+    por_estado = {}
+    for (estado_val,) in estados:
+        if estado_val:
+            count = db.query(Incidencia).filter(Incidencia.estado == estado_val).count()
+            por_estado[estado_val] = count
+    
+    # Contar por zona
+    zonas = db.query(Incidencia.zona).distinct().all()
+    por_zona = {}
+    for (zona_val,) in zonas:
+        if zona_val:
+            count = db.query(Incidencia).filter(Incidencia.zona == zona_val).count()
+            por_zona[zona_val] = count
+
+    return {
+        "total": total,
+        "por_estado": por_estado,
+        "por_zona": por_zona,
+    }
 
 
 @router.get("/", response_model=List[IncidenciaResponse])
@@ -77,8 +105,10 @@ async def crear_incidencia(
         lon=incidencia.lon,
         zona=incidencia.zona,
         usuario_id=incidencia.usuario_id,
-        estado="abierta",
-        reportado_en=datetime.utcnow()
+        estado="pendiente",
+        reportado_en=datetime.utcnow(),
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow(),
     )
     db.add(new_incident)
     db.commit()
@@ -125,17 +155,3 @@ async def eliminar_incidencia(incidencia_id: int, db: Annotated[Session, Depends
     db.delete(incidencia)
     db.commit()
     return {"mensaje": "Incidencia eliminada"}
-
-
-@router.get("/stats", response_model=dict)
-async def estadisticas(db: Annotated[Session, Depends(get_db)]):
-    """Estadísticas de incidencias"""
-    total = db.query(Incidencia).count()
-    por_estado = {}
-    por_zona = {}
-
-    return {
-        "total": total,
-        "por_estado": por_estado,
-        "por_zona": por_zona,
-    }

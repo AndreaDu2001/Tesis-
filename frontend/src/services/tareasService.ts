@@ -11,14 +11,29 @@ export interface Tarea {
 }
 
 export const listarTareas = async () => {
-  const { data } = await api.get(API_ENDPOINTS.TASKS.LISTAR);
-  return data;
+  try {
+    const response = await api.get(API_ENDPOINTS.TASKS.LISTAR);
+    // Si es 404, devolver vacío (endpoint no existe)
+    if (response.status === 404) {
+      return { total: 0, tareas: [] };
+    }
+    const { data } = response;
+    // Adaptar a estructura esperada por UI
+    if (data && Array.isArray(data.tasks)) {
+      return { total: data.total ?? data.tasks.length, tareas: data.tasks };
+    }
+    return { total: 0, tareas: [] };
+  } catch (err: any) {
+    // Errores reales (no 404)
+    console.error('Error inesperado en listarTareas:', err);
+    return { total: 0, tareas: [] };
+  }
 };
 
 export const obtenerTarea = async (id: string | number) => {
   // Backend no expone GET /tasks/{id}; se filtra desde el listado
   const list = await listarTareas();
-  return list.tasks?.find((t: Tarea) => String(t.id) === String(id)) || null;
+  return (list as any).tareas?.find((t: Tarea) => String(t.id) === String(id)) || null;
 };
 
 export const crearTarea = async (payload: Partial<Tarea>) => {

@@ -7,8 +7,8 @@ from os import getenv
 
 # URL de conexión a PostgreSQL
 DATABASE_URL = getenv(
-    "DATABASE_URL",
-    "postgresql://user:password@localhost/incidencias"
+    "DB_URL",
+    getenv("DATABASE_URL", "postgresql://user:password@localhost/incidencias")
 )
 
 # Configuración de SQLAlchemy

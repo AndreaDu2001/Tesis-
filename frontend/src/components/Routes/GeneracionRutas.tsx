@@ -26,6 +26,7 @@ export default function GeneracionRutas() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [umbralInfo, setUmbralInfo] = useState<any | null>(null);
+  const [rutaGenerada, _setRutaGenerada] = useState<any | null>(null);
 
   const verificarUmbral = useCallback(async () => {
     try {

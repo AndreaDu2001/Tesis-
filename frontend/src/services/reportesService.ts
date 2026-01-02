@@ -13,12 +13,41 @@ export interface ReporteEstadisticas {
 }
 
 export const reporteEstadisticas = async (params?: { fecha_inicio?: string; fecha_fin?: string; }) => {
-  const queryParams = new URLSearchParams();
-  if (params?.fecha_inicio) queryParams.append('start_date', params.fecha_inicio);
-  if (params?.fecha_fin) queryParams.append('end_date', params.fecha_fin);
-  const url = `${API_ENDPOINTS.REPORTS.ESTADISTICAS}?${queryParams.toString()}`;
-  const { data } = await api.get(url);
-  return data as ReporteEstadisticas;
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.fecha_inicio) queryParams.append('start_date', params.fecha_inicio);
+    if (params?.fecha_fin) queryParams.append('end_date', params.fecha_fin);
+    const url = `${API_ENDPOINTS.REPORTS.ESTADISTICAS}?${queryParams.toString()}`;
+    const response = await api.get(url);
+    // Si es 404, devolver placeholder (endpoint no existe)
+    if (response.status === 404) {
+      return {
+        period: `${params?.fecha_inicio || 'N/A'} - ${params?.fecha_fin || 'N/A'}`,
+        total_incidencias: 0,
+        total_rutas_generadas: 0,
+        total_rutas_completadas: 0,
+        suma_gravedad_total: 0,
+        incidencias_por_tipo: {},
+        incidencias_por_zona: {},
+        eficiencia_conductores: [],
+      } as ReporteEstadisticas;
+    }
+    const { data } = response;
+    return data as ReporteEstadisticas;
+  } catch (err: any) {
+    // Errores reales (no 404)
+    console.error('Error inesperado en reporteEstadisticas:', err);
+    return {
+      period: `${params?.fecha_inicio || 'N/A'} - ${params?.fecha_fin || 'N/A'}`,
+      total_incidencias: 0,
+      total_rutas_generadas: 0,
+      total_rutas_completadas: 0,
+      suma_gravedad_total: 0,
+      incidencias_por_tipo: {},
+      incidencias_por_zona: {},
+      eficiencia_conductores: [],
+    } as ReporteEstadisticas;
+  }
 };
 
 export const exportarReporte = async (formato: 'pdf' | 'excel') => {

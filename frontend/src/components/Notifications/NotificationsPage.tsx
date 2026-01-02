@@ -28,6 +28,7 @@ import {
   MarkEmailRead as ReadIcon,
 } from '@mui/icons-material';
 import notificationsService from '../../services/notificacionesService';
+import { toErrorMessage } from '../../services/errorUtils';
 
 interface Notification {
   id: number;
@@ -69,7 +70,7 @@ const NotificationsPage: React.FC = () => {
       const data = await notificationsService.listarNotificaciones();
       setNotifications((data.notificaciones || []) as any);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al cargar notificaciones');
+      setError(toErrorMessage(err) || 'Error al cargar notificaciones');
       console.error('Error loading notifications:', err);
     } finally {
       setLoading(false);

@@ -30,6 +30,7 @@ import {
   PlayArrow as StartIcon,
 } from '@mui/icons-material';
 import tareasService from '../../services/tareasService';
+import { toErrorMessage } from '../../services/errorUtils';
 
 interface Task {
   id: number;
@@ -96,7 +97,7 @@ const TasksPage: React.FC = () => {
       const data = await tareasService.listarTareas();
       setTasks((data.tareas || []) as any);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al cargar tareas');
+      setError(toErrorMessage(err) || 'Error al cargar tareas');
       console.error('Error loading tasks:', err);
     } finally {
       setLoading(false);

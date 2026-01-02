@@ -17,8 +17,8 @@ from app.routers import (
     reports,
 )
 
-# Crear tablas
-Base.metadata.create_all(bind=engine)
+# Crear tablas (comentado para usar esquema existente en Neon)
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Sistema de Gestión de Incidencias - EPAGAL Latacunga",

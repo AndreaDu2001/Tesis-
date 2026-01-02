@@ -6,12 +6,12 @@ FROM node:18-alpine AS frontend-build
 
 WORKDIR /app/frontend
 
-# Copiar package.json
+# Copiar manifest
 COPY frontend/package.json ./
 COPY frontend/package-lock.json ./
 
-# Instalar dependencias (mostrar logs completos para diagnósticos)
-RUN npm ci --legacy-peer-deps
+# Instalar dependencias sin exigir lockfile (lockfile actual es inválido)
+RUN npm install --no-audit --no-fund --legacy-peer-deps
 
 # Copiar resto del código
 COPY frontend ./

@@ -31,6 +31,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import IncidenciasService from '../../services/incidenciasService';
+import { toErrorMessage } from '../../services/errorUtils';
 
 // Fix para íconos de Leaflet en React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -55,23 +56,22 @@ interface Incident {
 }
 
 const INCIDENT_TYPES = [
-  { value: 'ACUMULACION', label: 'Acumulación de Residuos' },
-  { value: 'CONTENEDOR', label: 'Contenedor Dañado' },
-  { value: 'DERRAME', label: 'Derrame' },
-  { value: 'OTRO', label: 'Otro' },
+  { value: 'acopio', label: 'Punto de Acopio' },
+  { value: 'zona_critica', label: 'Zona Crítica' },
+  { value: 'animal_muerto', label: 'Animal Muerto' },
 ];
 
 const GRAVEDAD_LEVELS = [
   { value: 1, label: 'Baja', color: '#4caf50' },
-  { value: 2, label: 'Media', color: '#ff9800' },
-  { value: 3, label: 'Alta', color: '#f44336' },
-  { value: 4, label: 'Crítica', color: '#d32f2f' },
+  { value: 3, label: 'Media', color: '#ff9800' },
+  { value: 5, label: 'Alta', color: '#f44336' },
 ];
 
 const STATUS_OPTIONS = [
-  { value: 'abierta', label: 'Abierta', color: '#757575' },
-  { value: 'en_proceso', label: 'En Proceso', color: '#2196f3' },
-  { value: 'resuelta', label: 'Resuelta', color: '#4caf50' },
+  { value: 'pendiente', label: 'Pendiente', color: '#757575' },
+  { value: 'validada', label: 'Validada', color: '#9c27b0' },
+  { value: 'asignada', label: 'Asignada', color: '#2196f3' },
+  { value: 'completada', label: 'Completada', color: '#4caf50' },
   { value: 'cancelada', label: 'Cancelada', color: '#f44336' },
 ];
 
@@ -81,10 +81,10 @@ const IncidentsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [formData, setFormData] = useState({
-    tipo: 'ACUMULACION',
+    tipo: 'acopio',
     descripcion: '',
-    gravedad: 2,
-    zona: 'Latacunga',
+    gravedad: 3,
+    zona: 'occidental',
     latitud: -0.9346,
     longitud: -78.6156,
   });
@@ -98,9 +98,11 @@ const IncidentsPage: React.FC = () => {
       setLoading(true);
       setError(null);
       const data = await IncidenciasService.listarIncidencias();
-      setIncidents(Array.isArray(data) ? data : (data.results || data));
+      // El backend devuelve un array directo: List[IncidenciaResponse]
+      const incidentsList = Array.isArray(data) ? data : (data?.incidents || data?.results || []);
+      setIncidents(incidentsList);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al cargar incidencias');
+      setError(toErrorMessage(err) || 'Error al cargar incidencias');
       console.error('Error loading incidents:', err);
     } finally {
       setLoading(false);
@@ -109,21 +111,29 @@ const IncidentsPage: React.FC = () => {
 
   const handleCreateIncident = async () => {
     try {
+      const lat = typeof formData.latitud === 'number' && !isNaN(formData.latitud) ? formData.latitud : null;
+      const lon = typeof formData.longitud === 'number' && !isNaN(formData.longitud) ? formData.longitud : null;
+      
       const payload = {
         tipo: formData.tipo,
-        descripcion: formData.descripcion,
-        gravedad: Number(formData.gravedad),
-        lat: formData.latitud,
-        lon: formData.longitud,
-        zona: formData.zona,
+        descripcion: formData.descripcion.trim(),
+        gravedad: Number(formData.gravedad) || 2,
+        lat,
+        lon,
+        zona: formData.zona.trim(),
+        foto_url: null,
+        usuario_id: 1,
       };
       
+      console.log('[DEBUG] Payload enviado:', payload);
       await IncidenciasService.crearIncidencia(payload);
       setOpenDialog(false);
       resetForm();
       loadIncidents();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al crear incidencia');
+      const errorMsg = toErrorMessage(err) || 'Error al crear incidencia';
+      console.error('[ERROR] Crear incidencia:', err, errorMsg);
+      setError(errorMsg);
     }
   };
 
@@ -132,7 +142,7 @@ const IncidentsPage: React.FC = () => {
       await IncidenciasService.actualizarIncidencia(id, { estado });
       loadIncidents();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al actualizar estado');
+      setError(toErrorMessage(err) || 'Error al actualizar estado');
     }
   };
 
@@ -143,7 +153,7 @@ const IncidentsPage: React.FC = () => {
       await IncidenciasService.eliminarIncidencia(id);
       loadIncidents();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al eliminar incidencia');
+      setError(toErrorMessage(err) || 'Error al eliminar incidencia');
     }
   };
 
@@ -212,6 +222,13 @@ const IncidentsPage: React.FC = () => {
             <MapContainer
               center={[-0.9346, -78.6156]}
               zoom={13}
+              maxBounds={[
+                [-1.05, -78.75],  // Esquina suroeste (límite sur y oeste)
+                [-0.82, -78.48]   // Esquina noreste (límite norte y este)
+              ]}
+              maxBoundsViscosity={1.0}
+              minZoom={12}
+              maxZoom={18}
               style={{ height: '350px', width: '100%' }}
             >
               <TileLayer
@@ -294,7 +311,7 @@ const IncidentsPage: React.FC = () => {
                     />
 
                     <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
-                      Creado: {new Date(incident.created_at).toLocaleDateString()}
+                      Creado: {incident.created_at ? new Date(incident.created_at).toLocaleDateString() : 'N/D'}
                     </Typography>
                   </CardContent>
                   

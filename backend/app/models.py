@@ -1,12 +1,13 @@
 """
 Modelos SQLAlchemy para la base de datos
 """
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, ForeignKey, Text  # type: ignore[import]
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, ForeignKey, Text, Enum  # type: ignore[import]
 from sqlalchemy.dialects.postgresql import UUID  # type: ignore[import]
 from sqlalchemy.orm import relationship  # type: ignore[import]
 from datetime import datetime
 from app.database import Base
 import uuid
+import enum
 
 
 class User(Base):
@@ -100,6 +101,56 @@ class Incidencia(Base):
     usuario_id = Column(Integer)  # Sin FK (users.id es UUID)
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
+
+
+
+# Modelo de Tarea
+class Task(Base):
+    __tablename__ = "tasks"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, nullable=False, default=uuid.uuid4)
+    titulo = Column(String, nullable=False)
+    descripcion = Column(Text, nullable=True)
+    tipo = Column(String, nullable=False, default="RECOLECCION")
+    prioridad = Column(String, nullable=False, default="MEDIA")
+    estado = Column(String, nullable=False, default="PENDIENTE")
+    progreso = Column(Integer, default=0)
+    fecha_limite = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+    conductor_id = Column(Integer, ForeignKey("conductores.id"), nullable=True)
+    ruta_id = Column(Integer, ForeignKey("rutas.id"), nullable=True)
+
+    conductor = relationship("Conductor")
+    ruta = relationship("Ruta")
+
+class ReportType(str, enum.Enum):
+    ZONA_CRITICA = "ZONA_CRITICA"
+    PUNTO_ACOPIO_LLENO = "PUNTO_ACOPIO_LLENO"
+
+class ReportState(str, enum.Enum):
+    ENVIADO = "ENVIADO"
+    EN_PROCESO = "EN_PROCESO"
+    COMPLETADO = "COMPLETADO"
+    CERRADO = "CERRADO"
+
+class Report(Base):
+    """Modelo de reporte de incidencias desde APK (schema real de Neon)"""
+    __tablename__ = "reports"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    type = Column(String(50), nullable=False)
+    lat = Column(Float)
+    lon = Column(Float)
+    photo_url = Column(Text)
+    description = Column(Text)
+    status = Column(String(20))
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    synced = Column(Boolean, default=False)
+    report_location_id = Column(UUID(as_uuid=True))
+    deleted_at = Column(DateTime)
 
 
 class Asignacion(Base):

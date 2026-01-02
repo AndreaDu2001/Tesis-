@@ -1,13 +1,9 @@
-#!/bin/bash
-set -euo pipefail
+#!/bin/sh
+set -e
 
 # Entrypoint para FastAPI
 cd /app
 
-echo "Iniciando entrypoint FastAPI..."
+echo "Iniciando servidor FastAPI..."
 
-PORT=${PORT:-8000}
-WORKERS=${WORKERS:-4}
-
-echo "Iniciando servidor FastAPI en el puerto ${PORT} con ${WORKERS} workers..."
-exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --workers ${WORKERS} --loop uvloop
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level info

@@ -1,10 +1,10 @@
 """
 Router para tareas (/api/tasks)
 """
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import List, Optional
+from fastapi import APIRouter, Depends  # type: ignore[import]
+from sqlalchemy.orm import Session  # type: ignore[import]
+from pydantic import BaseModel  # type: ignore[import]
+from typing import Annotated, List, Optional
 from datetime import datetime
 from app.database import get_db
 
@@ -26,12 +26,12 @@ class TaskList(BaseModel):
 
 
 @router.get("/", response_model=TaskList)
-async def list_tasks(db: Session = Depends(get_db)):
+async def list_tasks(db: Annotated[Session, Depends(get_db)]):
     return {"total": 0, "tasks": []}
 
 
 @router.post("/", response_model=Task)
-async def create_task(payload: dict, db: Session = Depends(get_db)):
+async def create_task(payload: dict, db: Annotated[Session, Depends(get_db)]):
     return Task(
         id=1,
         title=payload.get("title", "Nueva tarea"),
@@ -42,7 +42,7 @@ async def create_task(payload: dict, db: Session = Depends(get_db)):
 
 
 @router.patch("/{task_id}", response_model=Task)
-async def update_task(task_id: int, payload: dict, db: Session = Depends(get_db)):
+async def update_task(task_id: int, payload: dict, db: Annotated[Session, Depends(get_db)]):
     return Task(
         id=task_id,
         title=payload.get("title", "Tarea demo"),
@@ -53,7 +53,7 @@ async def update_task(task_id: int, payload: dict, db: Session = Depends(get_db)
 
 
 @router.post("/{task_id}/complete", response_model=Task)
-async def complete_task(task_id: int, db: Session = Depends(get_db)):
+async def complete_task(task_id: int, db: Annotated[Session, Depends(get_db)]):
     return Task(
         id=task_id,
         title="Tarea demo",

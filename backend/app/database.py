@@ -1,14 +1,14 @@
 """
 Configuración de base de datos para SQLAlchemy
 """
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import create_engine  # type: ignore[import]
+from sqlalchemy.orm import declarative_base, sessionmaker  # type: ignore[import]
 from os import getenv
 
 # URL de conexión a PostgreSQL
 DATABASE_URL = getenv(
-    "DATABASE_URL",
-    "postgresql://user:password@localhost/incidencias"
+    "DB_URL",
+    getenv("DATABASE_URL", "postgresql://user:password@localhost/incidencias")
 )
 
 # Configuración de SQLAlchemy

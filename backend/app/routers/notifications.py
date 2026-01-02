@@ -1,10 +1,10 @@
 """
 Router para notificaciones (/api/notifications)
 """
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import List, Optional
+from fastapi import APIRouter, Depends  # type: ignore[import]
+from sqlalchemy.orm import Session  # type: ignore[import]
+from pydantic import BaseModel  # type: ignore[import]
+from typing import Annotated, List
 from datetime import datetime
 from app.database import get_db
 
@@ -27,12 +27,12 @@ class NotificationList(BaseModel):
 
 
 @router.get("/", response_model=NotificationList)
-async def list_notifications(db: Session = Depends(get_db)):
+async def list_notifications(db: Annotated[Session, Depends(get_db)]):
     return {"total": 0, "unread": 0, "notifications": []}
 
 
 @router.patch("/{notification_id}/read", response_model=Notification)
-async def mark_read(notification_id: int, db: Session = Depends(get_db)):
+async def mark_read(notification_id: int, db: Annotated[Session, Depends(get_db)]):
     return Notification(
         id=notification_id,
         type="info",
@@ -43,5 +43,5 @@ async def mark_read(notification_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/read-all")
-async def mark_all_read(db: Session = Depends(get_db)):
+async def mark_all_read(db: Annotated[Session, Depends(get_db)]):
     return {"message": "Todas las notificaciones marcadas como leídas"}

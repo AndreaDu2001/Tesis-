@@ -6,19 +6,19 @@ FROM node:18-alpine AS frontend-build
 
 WORKDIR /app/frontend
 
-# Copiar package.json
+# Copiar manifest
 COPY frontend/package.json ./
 COPY frontend/package-lock.json ./
 
-# Instalar dependencias
-RUN npm ci --legacy-peer-deps 2>&1 | tail -10
+# Instalar dependencias sin exigir lockfile (lockfile actual es inválido)
+RUN npm install --no-audit --no-fund --legacy-peer-deps
 
 # Copiar resto del código
 COPY frontend ./
 
 # Variables de entorno para build (CRÍTICO: deben estar en stage 1)
-ARG REACT_APP_API_URL=https://epagal-backend-routing-latest.onrender.com
-ENV REACT_APP_API_URL=${REACT_APP_API_URL}
+ARG REACT_APP_API_BASE=https://epagal-backend-routing-latest.onrender.com
+ENV REACT_APP_API_BASE=${REACT_APP_API_BASE}
 ENV NODE_ENV=production
 ENV CI=false
 

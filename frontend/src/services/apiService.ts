@@ -10,6 +10,8 @@ class ApiService {
       headers: {
         'Content-Type': 'application/json',
       },
+      // No considerar 404 como error (para endpoints opcionales)
+      validateStatus: (status) => status < 500,
     });
 
     // Interceptor para agregar el token a todas las solicitudes

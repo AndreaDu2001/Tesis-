@@ -1,10 +1,10 @@
 """
 Router de rutas para FastAPI
 """
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status  # type: ignore[import]
+from sqlalchemy.orm import Session  # type: ignore[import]
+from pydantic import BaseModel  # type: ignore[import]
+from typing import Annotated, List, Optional
 from datetime import datetime
 from app.database import get_db
 from app.models import Ruta
@@ -20,7 +20,7 @@ class RutaResponse(BaseModel):
     tiempo_estimado_minutos: int
     estado: str
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 
@@ -33,13 +33,13 @@ class RutaCreate(BaseModel):
 
 
 @router.get("/", response_model=List[RutaResponse])
-async def listar_rutas(db: Session = Depends(get_db)):
+async def listar_rutas(db: Annotated[Session, Depends(get_db)]):
     """Listar todas las rutas"""
     return db.query(Ruta).all()
 
 
 @router.post("/", response_model=RutaResponse, status_code=status.HTTP_201_CREATED)
-async def crear_ruta(ruta: RutaCreate, db: Session = Depends(get_db)):
+async def crear_ruta(ruta: RutaCreate, db: Annotated[Session, Depends(get_db)]):
     """Crear nueva ruta"""
     new_ruta = Ruta(
         nombre=ruta.nombre,
@@ -55,7 +55,7 @@ async def crear_ruta(ruta: RutaCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/{ruta_id}", response_model=RutaResponse)
-async def obtener_ruta(ruta_id: int, db: Session = Depends(get_db)):
+async def obtener_ruta(ruta_id: int, db: Annotated[Session, Depends(get_db)]):
     """Obtener una ruta específica"""
     ruta = db.query(Ruta).filter(Ruta.id == ruta_id).first()
     if not ruta:
@@ -67,36 +67,36 @@ async def obtener_ruta(ruta_id: int, db: Session = Depends(get_db)):
 async def actualizar_ruta(
     ruta_id: int,
     payload: dict,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Actualizar una ruta"""
     ruta = db.query(Ruta).filter(Ruta.id == ruta_id).first()
     if not ruta:
         raise HTTPException(status_code=404, detail="Ruta no encontrada")
-    
+
     for key, value in payload.items():
         if hasattr(ruta, key) and key != "id":
             setattr(ruta, key, value)
-    
+
     db.commit()
     db.refresh(ruta)
     return ruta
 
 
 @router.delete("/{ruta_id}")
-async def eliminar_ruta(ruta_id: int, db: Session = Depends(get_db)):
+async def eliminar_ruta(ruta_id: int, db: Annotated[Session, Depends(get_db)]):
     """Eliminar una ruta"""
     ruta = db.query(Ruta).filter(Ruta.id == ruta_id).first()
     if not ruta:
         raise HTTPException(status_code=404, detail="Ruta no encontrada")
-    
+
     db.delete(ruta)
     db.commit()
     return {"mensaje": "Ruta eliminada"}
 
 
 @router.get("/zona/{zona}", response_model=List[RutaResponse])
-async def obtener_rutas_por_zona(zona: str, db: Session = Depends(get_db)):
+async def obtener_rutas_por_zona(zona: str, db: Annotated[Session, Depends(get_db)]):
     """Obtener rutas por zona"""
     # TODO: Cuando Ruta tenga campo 'zona'
     return db.query(Ruta).all()

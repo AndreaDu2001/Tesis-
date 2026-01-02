@@ -3,49 +3,58 @@ import { API_ENDPOINTS } from '../config/api';
 
 export interface Tarea {
   id: number;
-  titulo: string;
-  descripcion: string;
-  conductor_id?: number;
-  ruta_id?: number;
-  estado: 'pending' | 'en_progreso' | 'completed' | 'cancelada';
-  prioridad: 'baja' | 'media' | 'alta' | 'urgente';
-  fecha_creacion: string;
-  fecha_vencimiento?: string;
-  fecha_completada?: string;
+  title: string;
+  description?: string;
+  status: string;
+  priority: string;
+  created_at?: string;
 }
 
-export const listarTareas = async (params?: { estado?: string; conductor_id?: number; }) => {
-  console.warn('Tareas: endpoint no disponible en backend actual, devolviendo placeholder.');
-  return {
-    total: 0,
-    tareas: [] as Tarea[],
-  };
+export const listarTareas = async () => {
+  try {
+    const response = await api.get(API_ENDPOINTS.TASKS.LISTAR);
+    // Si es 404, devolver vacío (endpoint no existe)
+    if (response.status === 404) {
+      return { total: 0, tareas: [] };
+    }
+    const { data } = response;
+    // Adaptar a estructura esperada por UI
+    if (data && Array.isArray(data.tasks)) {
+      return { total: data.total ?? data.tasks.length, tareas: data.tasks };
+    }
+    return { total: 0, tareas: [] };
+  } catch (err: any) {
+    // Errores reales (no 404)
+    console.error('Error inesperado en listarTareas:', err);
+    return { total: 0, tareas: [] };
+  }
 };
 
 export const obtenerTarea = async (id: string | number) => {
-  console.warn('Tareas: obtenerTarea no disponible en backend actual.');
-  return null;
+  // Backend no expone GET /tasks/{id}; se filtra desde el listado
+  const list = await listarTareas();
+  return (list as any).tareas?.find((t: Tarea) => String(t.id) === String(id)) || null;
 };
 
-export const iniciarTarea = async (id: string | number) => {
-  console.warn('Tareas: iniciarTarea no disponible en backend actual.');
-  return null;
+export const crearTarea = async (payload: Partial<Tarea>) => {
+  const { data } = await api.post(API_ENDPOINTS.TASKS.CREAR, payload);
+  return data;
 };
 
-export const finalizarTarea = async (id: string | number, notas?: string) => {
-  console.warn('Tareas: finalizarTarea no disponible en backend actual.');
-  return null;
+export const actualizarTarea = async (id: string | number, payload: Partial<Tarea>) => {
+  const { data } = await api.patch(API_ENDPOINTS.TASKS.ACTUALIZAR(id), payload);
+  return data;
 };
 
-export const completarParada = async (stopId: string | number) => {
-  console.warn('Tareas: completarParada no disponible en backend actual.');
-  return null;
+export const completarTarea = async (id: string | number) => {
+  const { data } = await api.post(API_ENDPOINTS.TASKS.COMPLETAR(id));
+  return data;
 };
 
 export default {
   listarTareas,
   obtenerTarea,
-  iniciarTarea,
-  finalizarTarea,
-  completarParada,
+  crearTarea,
+  actualizarTarea,
+  completarTarea,
 };

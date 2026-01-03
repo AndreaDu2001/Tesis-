@@ -64,6 +64,7 @@ export default function OperadoresPage() {
       setError(null);
     } catch (err: any) {
       setError('Error al cargar operadores');
+      setOperadores([]); // Inicializar como array vacío en caso de error
       console.error(err);
     } finally {
       setLoading(false);

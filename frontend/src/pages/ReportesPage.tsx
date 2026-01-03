@@ -102,6 +102,7 @@ const ReportesPage: React.FC = () => {
       setOperadores(data);
     } catch (err) {
       console.error('Error al cargar operadores:', err);
+      setOperadores([]); // Inicializar como array vacío en caso de error
     }
   };
 

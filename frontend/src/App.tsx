@@ -26,6 +26,8 @@ import GeneracionRutas from './components/Routes/GeneracionRutas';
 import MisRutas from './components/Routes/MisRutas';
 import RutaDetalle from './components/Routes/RutaDetalle';
 import IncidentsPage from './components/Incidents/IncidentsPage';
+import ReportesPage from './pages/ReportesPage';
+import OperadoresPage from './pages/OperadoresPage';
 
 const theme = createTheme({
   palette: {
@@ -196,6 +198,8 @@ function App() {
                 <Route path="/rutas/:rutaId" element={<RutaDetalle />} />
                 <Route path="/routes" element={<GeneracionRutas />} />
                 <Route path="/incidents" element={<IncidentsPage />} />
+                <Route path="/reportes" element={<ReportesPage />} />
+                <Route path="/operadores" element={<OperadoresPage />} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/login" element={<Navigate to="/dashboard" replace />} />
               </Routes>

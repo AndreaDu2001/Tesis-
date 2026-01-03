@@ -36,6 +36,8 @@ const navigationItems: NavItem[] = [
   { text: 'Mis Rutas', icon: <CarIcon />, path: '/rutas' },
   { text: 'Generación de Rutas', icon: <RouteIcon />, path: '/routes' },
   { text: 'Incidencias', icon: <WarningIcon />, path: '/incidents' },
+  { text: 'Reportes APK', icon: <ReportIcon />, path: '/reportes' },
+  { text: 'Operadores', icon: <TaskIcon />, path: '/operadores' },
 ];
 
 interface SidebarProps {

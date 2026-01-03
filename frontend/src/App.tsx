@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+// Force Render redeploy - 2026-01-02 23:00
 import { 
   ThemeProvider, 
   createTheme, 

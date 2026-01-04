@@ -28,6 +28,8 @@ import RutaDetalle from './components/Routes/RutaDetalle';
 import IncidentsPage from './components/Incidents/IncidentsPage';
 import ReportesPage from './pages/ReportesPage';
 import OperadoresPage from './pages/OperadoresPage';
+import TrackingPage from './pages/TrackingPage';
+import HorariosPage from './pages/HorariosPage';
 
 const theme = createTheme({
   palette: {
@@ -200,6 +202,8 @@ function App() {
                 <Route path="/incidents" element={<IncidentsPage />} />
                 <Route path="/reportes" element={<ReportesPage />} />
                 <Route path="/operadores" element={<OperadoresPage />} />
+                <Route path="/tracking" element={<TrackingPage />} />
+                <Route path="/horarios" element={<HorariosPage />} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/login" element={<Navigate to="/dashboard" replace />} />
               </Routes>

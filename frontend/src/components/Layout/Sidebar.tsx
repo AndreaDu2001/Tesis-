@@ -20,6 +20,8 @@ import {
   Notifications as NotificationIcon,
   Assessment as ReportIcon,
   Route as RouteIcon,
+  Schedule as ScheduleIcon,
+  MyLocation as TrackingIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -38,6 +40,8 @@ const navigationItems: NavItem[] = [
   { text: 'Incidencias', icon: <WarningIcon />, path: '/incidents' },
   { text: 'Reportes APK', icon: <ReportIcon />, path: '/reportes' },
   { text: 'Operadores', icon: <TaskIcon />, path: '/operadores' },
+  { text: 'Tracking en Vivo', icon: <TrackingIcon />, path: '/tracking' },
+  { text: 'Horarios', icon: <ScheduleIcon />, path: '/horarios' },
 ];
 
 interface SidebarProps {

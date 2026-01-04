@@ -33,8 +33,7 @@ import {
   Delete as DeleteIcon,
   Schedule as ScheduleIcon
 } from '@mui/icons-material';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE || 'https://epagal-backend-routing-latest.onrender.com/api';
+import { API_BASE_URL } from '../config/api';
 
 interface Sector {
   id: number;

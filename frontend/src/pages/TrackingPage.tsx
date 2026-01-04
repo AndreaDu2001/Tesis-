@@ -21,7 +21,7 @@ import {
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE || 'https://epagal-backend-routing-latest.onrender.com/api';
+import { API_BASE_URL } from '../config/api';
 
 interface TrackingData {
   ejecucion_id: number;

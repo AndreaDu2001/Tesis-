@@ -47,19 +47,41 @@ interface Horario {
   id: number;
   sector_id: number;
   sector_nombre?: string;
-  dias_semana: string[];
-  hora_inicio: string;
-  hora_fin: string;
-  frecuencia_recoleccion: string;
-  tipo_residuo: string;
-  conductor_id: number | null;
-  camion_placa: string | null;
-  estado: string;
+  dias_semana: string;  // VARCHAR: "Lu,Mi,Vi"
+  dias_semana_nombres?: string[];  // Array parseado del backend
+  hora_inicio: string;  // VARCHAR: "07:00"
+  hora_fin: string;  // VARCHAR: "12:00"
+  tipo: string;  // 'domestica', 'comercial', 'barrido'
+  descripcion?: string;
+  camion_tipo?: string;  // 'lateral', 'posterior'
+  conductor_id?: number | null;
+  camion_placa?: string | null;
+  distancia_km?: number;
+  duracion_estimada_minutos?: number;
+  activo: boolean;
+  fecha_inicio_vigencia: string;
+  fecha_fin_vigencia?: string | null;
+  created_at?: string;
 }
 
-const DIAS_SEMANA = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
-const TIPO_RESIDUO = ['organico', 'reciclable', 'comun', 'peligroso'];
-const FRECUENCIA = ['diaria', 'semanal', 'quincenal', 'mensual'];
+const DIAS_SEMANA_OPTIONS = [
+  { value: 'Lu', label: 'Lunes' },
+  { value: 'Ma', label: 'Martes' },
+  { value: 'Mi', label: 'Miércoles' },
+  { value: 'Ju', label: 'Jueves' },
+  { value: 'Vi', label: 'Viernes' },
+  { value: 'Sa', label: 'Sábado' },
+  { value: 'Do', label: 'Domingo' }
+];
+const TIPO_RECOLECCION = [
+  { value: 'domestica', label: 'Doméstica' },
+  { value: 'comercial', label: 'Comercial' },
+  { value: 'barrido', label: 'Barrido' }
+];
+const CAMION_TIPO = [
+  { value: 'lateral', label: 'Lateral' },
+  { value: 'posterior', label: 'Posterior' }
+];
 
 const HorariosPage: React.FC = () => {
   const [sectores, setSectores] = useState<Sector[]>([]);
@@ -71,12 +93,15 @@ const HorariosPage: React.FC = () => {
 
   const [formData, setFormData] = useState<Partial<Horario>>({
     sector_id: 0,
-    dias_semana: [],
+    dias_semana: '',  // Ahora es string, no array
     hora_inicio: '08:00',
     hora_fin: '12:00',
-    frecuencia_recoleccion: 'semanal',
-    tipo_residuo: 'comun',
-    estado: 'activo'
+    tipo: 'domestica',
+    camion_tipo: 'lateral',
+    descripcion: '',
+    camion_placa: '',
+    fecha_inicio_vigencia: new Date().toISOString().split('T')[0],
+    activo: true
   });
 
   // Cargar sectores
@@ -127,12 +152,15 @@ const HorariosPage: React.FC = () => {
       setEditando(null);
       setFormData({
         sector_id: 0,
-        dias_semana: [],
+        dias_semana: '',
         hora_inicio: '08:00',
         hora_fin: '12:00',
-        frecuencia_recoleccion: 'semanal',
-        tipo_residuo: 'comun',
-        estado: 'activo'
+        tipo: 'domestica',
+        camion_tipo: 'lateral',
+        descripcion: '',
+        camion_placa: '',
+        fecha_inicio_vigencia: new Date().toISOString().split('T')[0],
+        activo: true
       });
       cargarHorarios();
     } catch (err: any) {
@@ -166,22 +194,25 @@ const HorariosPage: React.FC = () => {
       dias_semana: horario.dias_semana,
       hora_inicio: horario.hora_inicio,
       hora_fin: horario.hora_fin,
-      frecuencia_recoleccion: horario.frecuencia_recoleccion,
-      tipo_residuo: horario.tipo_residuo,
+      tipo: horario.tipo,
+      camion_tipo: horario.camion_tipo,
+      descripcion: horario.descripcion,
       conductor_id: horario.conductor_id,
       camion_placa: horario.camion_placa,
-      estado: horario.estado
+      fecha_inicio_vigencia: horario.fecha_inicio_vigencia,
+      activo: horario.activo
     });
     setDialogOpen(true);
   };
 
   // Manejar cambio de días de semana
   const toggleDia = (dia: string) => {
-    const dias = formData.dias_semana || [];
-    if (dias.includes(dia)) {
-      setFormData({ ...formData, dias_semana: dias.filter(d => d !== dia) });
+    const diasArray = formData.dias_semana ? formData.dias_semana.split(',').map(d => d.trim()) : [];
+    if (diasArray.includes(dia)) {
+      const newDias = diasArray.filter(d => d !== dia);
+      setFormData({ ...formData, dias_semana: newDias.join(',') });
     } else {
-      setFormData({ ...formData, dias_semana: [...dias, dia] });
+      setFormData({ ...formData, dias_semana: [...diasArray, dia].join(',') });
     }
   };
 
@@ -209,12 +240,15 @@ const HorariosPage: React.FC = () => {
             setEditando(null);
             setFormData({
               sector_id: 0,
-              dias_semana: [],
+              dias_semana: '',
               hora_inicio: '08:00',
               hora_fin: '12:00',
-              frecuencia_recoleccion: 'semanal',
-              tipo_residuo: 'comun',
-              estado: 'activo'
+              tipo: 'domestica',
+              camion_tipo: 'lateral',
+              descripcion: '',
+              camion_placa: '',
+              fecha_inicio_vigencia: new Date().toISOString().split('T')[0],
+              activo: true
             });
             setDialogOpen(true);
           }}
@@ -242,8 +276,7 @@ const HorariosPage: React.FC = () => {
               <TableCell>Sector</TableCell>
               <TableCell>Días</TableCell>
               <TableCell>Horario</TableCell>
-              <TableCell>Frecuencia</TableCell>
-              <TableCell>Tipo Residuo</TableCell>
+              <TableCell>Tipo</TableCell>
               <TableCell>Camión</TableCell>
               <TableCell>Estado</TableCell>
               <TableCell>Acciones</TableCell>
@@ -255,22 +288,21 @@ const HorariosPage: React.FC = () => {
                 <TableCell>{getSectorNombre(horario.sector_id)}</TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                    {horario.dias_semana.map((dia) => (
-                      <Chip key={dia} label={dia.substring(0, 3).toUpperCase()} size="small" />
+                    {(horario.dias_semana_nombres || horario.dias_semana.split(',')).map((dia, idx) => (
+                      <Chip key={idx} label={dia.trim()} size="small" />
                     ))}
                   </Box>
                 </TableCell>
                 <TableCell>{horario.hora_inicio} - {horario.hora_fin}</TableCell>
-                <TableCell>{horario.frecuencia_recoleccion}</TableCell>
                 <TableCell>
-                  <Chip label={horario.tipo_residuo} size="small" color="primary" />
+                  <Chip label={horario.tipo} size="small" color="primary" />
                 </TableCell>
                 <TableCell>{horario.camion_placa || 'Sin asignar'}</TableCell>
                 <TableCell>
                   <Chip
-                    label={horario.estado}
+                    label={horario.activo ? 'Activo' : 'Inactivo'}
                     size="small"
-                    color={horario.estado === 'activo' ? 'success' : 'default'}
+                    color={horario.activo ? 'success' : 'default'}
                   />
                 </TableCell>
                 <TableCell>
@@ -314,16 +346,16 @@ const HorariosPage: React.FC = () => {
                 Días de la Semana
               </Typography>
               <FormGroup row>
-                {DIAS_SEMANA.map((dia) => (
+                {DIAS_SEMANA_OPTIONS.map(({ value, label }) => (
                   <FormControlLabel
-                    key={dia}
+                    key={value}
                     control={
                       <Checkbox
-                        checked={(formData.dias_semana || []).includes(dia)}
-                        onChange={() => toggleDia(dia)}
+                        checked={(formData.dias_semana || '').split(',').includes(value)}
+                        onChange={() => toggleDia(value)}
                       />
                     }
-                    label={dia}
+                    label={label}
                   />
                 ))}
               </FormGroup>
@@ -353,14 +385,14 @@ const HorariosPage: React.FC = () => {
 
             <Grid item xs={6}>
               <FormControl fullWidth>
-                <InputLabel>Frecuencia</InputLabel>
+                <InputLabel>Tipo</InputLabel>
                 <Select
-                  value={formData.frecuencia_recoleccion}
-                  onChange={(e) => setFormData({ ...formData, frecuencia_recoleccion: e.target.value })}
+                  value={formData.tipo}
+                  onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
                 >
-                  {FRECUENCIA.map((freq) => (
-                    <MenuItem key={freq} value={freq}>
-                      {freq}
+                  {TIPO_RECOLECCION.map(({ value, label }) => (
+                    <MenuItem key={value} value={value}>
+                      {label}
                     </MenuItem>
                   ))}
                 </Select>
@@ -369,18 +401,29 @@ const HorariosPage: React.FC = () => {
 
             <Grid item xs={6}>
               <FormControl fullWidth>
-                <InputLabel>Tipo de Residuo</InputLabel>
+                <InputLabel>Tipo de Camión</InputLabel>
                 <Select
-                  value={formData.tipo_residuo}
-                  onChange={(e) => setFormData({ ...formData, tipo_residuo: e.target.value })}
+                  value={formData.camion_tipo}
+                  onChange={(e) => setFormData({ ...formData, camion_tipo: e.target.value })}
                 >
-                  {TIPO_RESIDUO.map((tipo) => (
-                    <MenuItem key={tipo} value={tipo}>
-                      {tipo}
+                  {CAMION_TIPO.map(({ value, label }) => (
+                    <MenuItem key={value} value={value}>
+                      {label}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Descripción (opcional)"
+                multiline
+                rows={2}
+                value={formData.descripcion || ''}
+                onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+              />
             </Grid>
 
             <Grid item xs={12}>

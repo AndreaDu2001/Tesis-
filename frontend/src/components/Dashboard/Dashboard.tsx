@@ -70,10 +70,27 @@ export default function Dashboard() {
       setLoading(true);
       setError(null);
       
-      const incidenciasData = await incidenciasService.estadisticasIncidencias();
-      // Las estadísticas de rutas ahora vienen del backend de rutas automáticas
+      let incidenciasData: Stats | null = null;
+      try {
+        incidenciasData = await incidenciasService.estadisticasIncidencias();
+      } catch (e) {
+        // Fallback: calcular estadísticas desde el listado
+        const listado = await incidenciasService.listarIncidencias({ limit: 200 });
+        const items = Array.isArray(listado) ? listado : (listado?.results || []);
+        const total = items.length;
+        const pendientes = items.filter((i: any) => i.estado === 'pendiente').length;
+        const asignadas = items.filter((i: any) => i.estado === 'asignada' || i.estado === 'validada').length;
+        const resueltas = items.filter((i: any) => i.estado === 'completada').length;
+        const por_tipo: Record<string, number> = {};
+        const por_zona: Record<string, number> = {};
+        items.forEach((i: any) => {
+          por_tipo[i.tipo] = (por_tipo[i.tipo] || 0) + 1;
+          if (i.zona) por_zona[i.zona] = (por_zona[i.zona] || 0) + 1;
+        });
+        incidenciasData = { total_incidencias: total, pendientes, asignadas, resueltas, por_tipo, por_zona };
+      }
+      // KPI rutas (placeholder)
       const rutasStats = { total: 0, asignado: 0, iniciado: 0, completado: 0 };
-      
       setStats(incidenciasData);
       setRutasStats(rutasStats);
     } catch (err: any) {

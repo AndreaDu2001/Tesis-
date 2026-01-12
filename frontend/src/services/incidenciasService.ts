@@ -6,8 +6,11 @@ export const listarIncidencias = async (params?: { estado?: string; zona?: strin
   if (params?.estado) query.append('estado', params.estado);
   if (params?.zona) query.append('zona', params.zona);
   if (params?.tipo) query.append('tipo', params.tipo);
-  if (params?.skip !== undefined) query.append('skip', String(params.skip));
-  if (params?.limit !== undefined) query.append('limit', String(params.limit));
+  // Defaults para asegurar que se carguen varias incidencias
+  const skip = params?.skip ?? 0;
+  const limit = params?.limit ?? 100;
+  query.append('skip', String(skip));
+  query.append('limit', String(limit));
   const url = `${API_ENDPOINTS.INCIDENCIAS.LISTAR}?${query.toString()}`;
   const { data } = await api.get(url);
   return data;

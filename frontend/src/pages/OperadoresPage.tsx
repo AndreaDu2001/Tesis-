@@ -25,16 +25,16 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import api from '../services/apiService';
-import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
+import { API_ENDPOINTS } from '../config/api';
 
 interface Operador {
-  id: string;
+  id: string | number;
   email: string;
   username: string;
   phone: string | null;
-  display_name: string;
-  role: string;
-  status: string;
+  display_name: string; // Mapeado desde nombre_completo
+  licencia_tipo?: string | null;
+  zona_preferida?: string | null;
 }
 
 export default function OperadoresPage() {
@@ -59,12 +59,23 @@ export default function OperadoresPage() {
   const cargarOperadores = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`${API_BASE_URL}/operadores/`);
-      setOperadores(response.data);
+      // Usar endpoint de CONDUCTORES, que sí existe en backend
+      const { data } = await api.get(API_ENDPOINTS.CONDUCTORES.LISTAR);
+      const lista: Operador[] = (Array.isArray(data) ? data : (data?.results || []))
+        .map((c: any) => ({
+          id: c.id,
+          email: c.email || '',
+          username: c.username || '',
+          phone: c.telefono || null,
+          display_name: c.nombre_completo || c.display_name || '',
+          licencia_tipo: c.licencia_tipo || null,
+          zona_preferida: c.zona_preferida || null,
+        }));
+      setOperadores(lista);
       setError(null);
     } catch (err: any) {
       setError('Error al cargar operadores');
-      setOperadores([]); // Inicializar como array vacío en caso de error
+      setOperadores([]);
       console.error(err);
     } finally {
       setLoading(false);
@@ -109,10 +120,19 @@ export default function OperadoresPage() {
 
   const handleSave = async () => {
     try {
+      const payload = {
+        email: formData.email,
+        username: formData.username,
+        password: formData.password || 'operador123',
+        nombre_completo: formData.display_name,
+        telefono: formData.phone || null,
+        licencia_tipo: 'C',
+        zona_preferida: 'oriental',
+      };
       if (editingId) {
-        await api.put(`${API_BASE_URL}/operadores/${editingId}`, formData);
+        await api.patch(API_ENDPOINTS.CONDUCTORES.ACTUALIZAR(editingId), payload);
       } else {
-        await api.post(`${API_BASE_URL}/operadores/`, formData);
+        await api.post(API_ENDPOINTS.CONDUCTORES.CREAR, payload);
       }
       await cargarOperadores();
       handleCloseDialog();
@@ -122,10 +142,10 @@ export default function OperadoresPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string | number) => {
     if (window.confirm('¿Está seguro de que desea eliminar este operador?')) {
       try {
-        await api.delete(`${API_BASE_URL}/operadores/${id}`);
+        await api.delete(API_ENDPOINTS.CONDUCTORES.ELIMINAR(id));
         await cargarOperadores();
       } catch (err: any) {
         setError('Error al eliminar operador');
@@ -168,7 +188,8 @@ export default function OperadoresPage() {
               <TableCell><strong>Email</strong></TableCell>
               <TableCell><strong>Usuario</strong></TableCell>
               <TableCell><strong>Teléfono</strong></TableCell>
-              <TableCell><strong>Estado</strong></TableCell>
+              <TableCell><strong>Licencia</strong></TableCell>
+              <TableCell><strong>Zona</strong></TableCell>
               <TableCell align="right"><strong>Acciones</strong></TableCell>
             </TableRow>
           </TableHead>
@@ -186,7 +207,8 @@ export default function OperadoresPage() {
                   <TableCell>{operador.email}</TableCell>
                   <TableCell>{operador.username}</TableCell>
                   <TableCell>{operador.phone || 'N/A'}</TableCell>
-                  <TableCell>{operador.status}</TableCell>
+                  <TableCell>{operador.licencia_tipo || 'N/A'}</TableCell>
+                  <TableCell>{operador.zona_preferida || 'N/A'}</TableCell>
                   <TableCell align="right">
                     <Button
                       size="small"

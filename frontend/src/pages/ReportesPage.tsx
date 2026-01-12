@@ -1,180 +1,270 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Box,
+  Container,
   Paper,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Button,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  CircularProgress,
+  Grid,
+  Card,
+  CardContent,
+  Box,
   Alert,
-  Stack,
-  SelectChangeEvent,
+  CircularProgress,
+  MenuItem,
+  TextField,
 } from '@mui/material';
 import {
-  Assignment as AssignmentIcon,
-  Map as MapIcon,
+  Assessment as ReportIcon,
   Refresh as RefreshIcon,
+  Download as DownloadIcon,
+  BarChart as ChartIcon,
 } from '@mui/icons-material';
-import { API_BASE_URL } from '../config/api';
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import reportesService from '../services/reportesService';
 
-interface Reporte {
-  id: string;
-  description: string;
-  type: string;
-  priority_score: number;
-  address: string | null;
-  state: string;
-  location_lat: number | null;
-  location_lon: number | null;
-  created_at: string;
-  updated_at: string;
+interface Stats {
+  total_incidencias: number;
+  incidencias_por_estado: Record<string, number>;
+  incidencias_por_tipo: Record<string, number>;
+  total_rutas: number;
+  rutas_activas: number;
+  total_tareas: number;
+  tareas_completadas: number;
+  tareas_pendientes: number;
 }
 
-interface Operador {
-  id: string;
-  email: string;
-  username: string;
-  display_name: string;
-  phone: string | null;
-}
+const COLORS = ['#2196f3', '#4caf50', '#ff9800', '#f44336', '#9c27b0', '#00bcd4'];
 
 const ReportesPage: React.FC = () => {
-  const [reportes, setReportes] = useState<Reporte[]>([]);
-  const [operadores, setOperadores] = useState<Operador[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [selectedReporte, setSelectedReporte] = useState<Reporte | null>(null);
-  const [selectedOperador, setSelectedOperador] = useState<string>('');
+  const [dateRange, setDateRange] = useState({
+    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    end: new Date().toISOString().split('T')[0],
+  });
 
-  const normalizeReporte = (raw: any): Reporte => {
-    const status = raw.state || raw.status || 'ENVIADO';
-    const type = (raw.type || '').toUpperCase();
 
-    return {
-      id: raw.id,
-      description: raw.description || 'Sin descripción',
-      type: type === 'CRITICO' ? 'ZONA_CRITICA' : type === 'ACOPIO' ? 'PUNTO_ACOPIO_LLENO' : raw.type || 'SIN_TIPO',
-      priority_score: raw.priority_score ?? (type === 'CRITICO' ? 8 : 5),
-      address: raw.address ?? null,
-      state: status,
-      location_lat: raw.location_lat ?? raw.lat ?? null,
-      location_lon: raw.location_lon ?? raw.lon ?? null,
-      created_at: raw.created_at,
-      updated_at: raw.updated_at,
-    };
-  };
-
-  const fetchReportes = async () => {
+  const loadStats = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/reportes/`);
-      if (!response.ok) throw new Error('Error al cargar reportes');
-      const data = await response.json();
-      setReportes(Array.isArray(data) ? data.map(normalizeReporte) : []);
       setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      const data = await reportesService.reporteEstadisticas({
+        fecha_inicio: dateRange.start,
+        fecha_fin: dateRange.end,
+      });
+      // Adaptar estructura a la UI esperada
+      setStats({
+        total_incidencias: data.total_incidencias || 0,
+        incidencias_por_estado: (data as any).incidencias_por_estado || {},
+        incidencias_por_tipo: data.incidencias_por_tipo || {},
+        total_rutas: data.total_rutas_generadas || 0,
+        rutas_activas: 0,
+        total_tareas: 0,
+        tareas_completadas: 0,
+        tareas_pendientes: 0,
+      });
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Error al cargar estadísticas');
+      console.error('Error loading stats:', err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchOperadores = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/operadores/`);
-      if (!response.ok) throw new Error('Error al cargar operadores');
-      const data = await response.json();
-      setOperadores(data);
-    } catch (err) {
-      console.error('Error al cargar operadores:', err);
-      setOperadores([]); // Inicializar como array vacío en caso de error
-    }
-  };
+  }, [dateRange.start, dateRange.end]);
 
   useEffect(() => {
-    fetchReportes();
-    fetchOperadores();
-  }, []);
+    loadStats();
+  }, [dateRange, loadStats]);
 
-  const handleAssignClick = (reporte: Reporte) => {
-    setSelectedReporte(reporte);
-    setAssignDialogOpen(true);
-  };
-
-  const handleAssignOperador = async () => {
-    if (!selectedReporte || !selectedOperador) return;
-
+  const handleExportPDF = async () => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/reportes/${selectedReporte.id}/asignar-operador?operador_id=${selectedOperador}`,
-        { method: 'POST' }
-      );
-      
-      if (!response.ok) throw new Error('Error al asignar operador');
-      
-      setAssignDialogOpen(false);
-      setSelectedOperador('');
-      fetchReportes(); // Recargar lista
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al asignar');
+      if (!stats) {
+        setError('No hay datos para exportar.');
+        return;
+      }
+
+      const win = window.open('', 'PRINT', 'height=800,width=1000');
+      if (!win) {
+        setError('No se pudo abrir la ventana de impresión.');
+        return;
+      }
+
+      const fecha = new Date().toLocaleString('es-EC');
+      const estadoRows = Object.entries(stats.incidencias_por_estado)
+        .map(([estado, cantidad]) => `<tr><td>${estado}</td><td>${cantidad}</td></tr>`) 
+        .join('');
+      const tipoRows = Object.entries(stats.incidencias_por_tipo)
+        .map(([tipo, cantidad]) => `<tr><td>${tipo}</td><td>${cantidad}</td></tr>`) 
+        .join('');
+
+      const html = `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="utf-8" />
+          <title>Reporte PDF</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 24px; }
+            h1 { margin: 0 0 8px; }
+            h2 { margin-top: 24px; }
+            .header { display:flex; justify-content:space-between; align-items:center; }
+            .card { border:1px solid #ddd; border-radius:8px; padding:12px; margin:8px 0; }
+            .grid { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:12px; }
+            table { width:100%; border-collapse:collapse; margin-top:8px; }
+            th, td { border:1px solid #ddd; padding:6px 8px; text-align:left; }
+            th { background:#f5f5f5; }
+            .meta { color:#555; font-size:12px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <h1>Reporte y Estadísticas</h1>
+              <div class="meta">Rango: ${dateRange.start} a ${dateRange.end}</div>
+              <div class="meta">Generado: ${fecha}</div>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Resumen</h2>
+            <div class="grid">
+              <div class="card"><strong>Incidencias</strong><div>${stats.total_incidencias}</div></div>
+              <div class="card"><strong>Rutas</strong><div>${stats.total_rutas}</div></div>
+              <div class="card"><strong>Tareas</strong><div>${stats.total_tareas}</div></div>
+              <div class="card"><strong>Completadas</strong><div>${stats.tareas_completadas}</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Incidencias por Estado</h2>
+            <table>
+              <thead><tr><th>Estado</th><th>Cantidad</th></tr></thead>
+              <tbody>${estadoRows || '<tr><td colspan="2">Sin datos</td></tr>'}</tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h2>Incidencias por Tipo</h2>
+            <table>
+              <thead><tr><th>Tipo</th><th>Cantidad</th></tr></thead>
+              <tbody>${tipoRows || '<tr><td colspan="2">Sin datos</td></tr>'}</tbody>
+            </table>
+          </div>
+        </body>
+        </html>
+      `;
+
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      // Esperar un pequeño tiempo para que el DOM se renderice antes de imprimir
+      setTimeout(() => {
+        win.print();
+        win.close();
+      }, 300);
+    } catch (e) {
+      console.error(e);
+      setError('No se pudo generar el PDF.');
     }
   };
 
-  const getStateColor = (state: string) => {
-    switch (state) {
-      case 'ENVIADO': return 'warning';
-      case 'EN_PROCESO': return 'info';
-      case 'COMPLETADO': return 'success';
-      case 'CERRADO': return 'default';
-      default: return 'default';
-    }
+  const handleExportExcel = async () => {
+    setError('Exportar Excel no está disponible en el backend actual.');
   };
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'ZONA_CRITICA': return 'Zona Crítica';
-      case 'PUNTO_ACOPIO_LLENO': return 'Punto de Acopio Lleno';
-      default: return type;
-    }
-  };
+  const incidentsByState = stats ? Object.entries(stats.incidencias_por_estado).map(([name, value]) => ({
+    name,
+    value,
+  })) : [];
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const incidentsByType = stats ? Object.entries(stats.incidencias_por_tipo).map(([name, value]) => ({
+    name,
+    value,
+  })) : [];
+
+  const taskCompletion = stats ? [
+    { name: 'Completadas', value: stats.tareas_completadas },
+    { name: 'Pendientes', value: stats.tareas_pendientes },
+  ] : [];
 
   return (
-    <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          📋 Reportes de Incidencias
+          <ReportIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+          Reportes y Estadísticas
         </Typography>
-        <Button
-          variant="outlined"
-          startIcon={<RefreshIcon />}
-          onClick={fetchReportes}
-        >
-          Actualizar
-        </Button>
-      </Stack>
+        <Box>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={loadStats}
+            sx={{ mr: 2 }}
+          >
+            Actualizar
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<DownloadIcon />}
+            onClick={handleExportExcel}
+            sx={{ mr: 1 }}
+          >
+            Excel
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<DownloadIcon />}
+            onClick={handleExportPDF}
+          >
+            PDF
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Filtros de Fecha */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              type="date"
+              label="Fecha Inicio"
+              value={dateRange.start}
+              onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              fullWidth
+              type="date"
+              label="Fecha Fin"
+              value={dateRange.end}
+              onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={loadStats}
+              startIcon={<ChartIcon />}
+            >
+              Generar Reporte
+            </Button>
+          </Grid>
+        </Grid>
+      </Paper>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
@@ -182,148 +272,186 @@ const ReportesPage: React.FC = () => {
         </Alert>
       )}
 
-      <Paper>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Tipo</TableCell>
-                <TableCell>Descripción</TableCell>
-                <TableCell>Dirección</TableCell>
-                <TableCell align="center">Prioridad</TableCell>
-                <TableCell align="center">Estado</TableCell>
-                <TableCell>Fecha Creación</TableCell>
-                <TableCell align="center">Acciones</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {reportes.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} align="center">
-                    <Typography variant="body2" color="text.secondary" py={3}>
-                      No hay reportes disponibles. Los reportes de la APK aparecerán aquí.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                reportes.map((reporte) => (
-                  <TableRow key={reporte.id} hover>
-                    <TableCell>
-                      <Chip
-                        label={getTypeLabel(reporte.type)}
-                        size="small"
-                        color={reporte.type === 'ZONA_CRITICA' ? 'error' : 'warning'}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" noWrap maxWidth={300}>
-                        {reporte.description}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" noWrap maxWidth={200}>
-                        {reporte.address || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Chip
-                        label={reporte.priority_score.toFixed(1)}
-                        size="small"
-                        color={reporte.priority_score > 7 ? 'error' : reporte.priority_score > 4 ? 'warning' : 'default'}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Chip
-                        label={reporte.state}
-                        size="small"
-                        color={getStateColor(reporte.state)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {new Date(reporte.created_at).toLocaleDateString('es-ES')}
-                    </TableCell>
-                    <TableCell align="center">
-                      <Stack direction="row" spacing={1} justifyContent="center">
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          startIcon={<AssignmentIcon />}
-                          onClick={() => handleAssignClick(reporte)}
-                          disabled={reporte.state === 'COMPLETADO' || reporte.state === 'CERRADO'}
-                        >
-                          Asignar
-                        </Button>
-                        {reporte.location_lat && reporte.location_lon && (
-                          <Button
-                            size="small"
-                            variant="text"
-                            startIcon={<MapIcon />}
-                            onClick={() => {
-                              window.open(
-                                `https://www.google.com/maps?q=${reporte.location_lat},${reporte.location_lon}`,
-                                '_blank'
-                              );
-                            }}
-                          >
-                            Ver
-                          </Button>
-                        )}
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      ) : stats ? (
+        <>
+          {/* Tarjetas de Resumen */}
+          <Grid container spacing={3} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card>
+                <CardContent>
+                  <Typography color="text.secondary" gutterBottom>
+                    Total Incidencias
+                  </Typography>
+                  <Typography variant="h3" color="primary">
+                    {stats.total_incidencias}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
 
-      {/* Dialog para asignar operador */}
-      <Dialog open={assignDialogOpen} onClose={() => setAssignDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Asignar Operador</DialogTitle>
-        <DialogContent>
-          {selectedReporte && (
-            <Box mb={2}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Reporte: {selectedReporte.description}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Tipo: {getTypeLabel(selectedReporte.type)}
-              </Typography>
-            </Box>
-          )}
+            <Grid item xs={12} sm={6} md={3}>
+              <Card>
+                <CardContent>
+                  <Typography color="text.secondary" gutterBottom>
+                    Total Rutas
+                  </Typography>
+                  <Typography variant="h3" color="info.main">
+                    {stats.total_rutas}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {stats.rutas_activas} activas
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
 
-          <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel>Seleccionar Operador</InputLabel>
-            <Select
-              value={selectedOperador}
-              onChange={(e: SelectChangeEvent) => setSelectedOperador(e.target.value)}
-              label="Seleccionar Operador"
-            >
-              {operadores.length === 0 ? (
-                <MenuItem disabled>No hay operadores disponibles</MenuItem>
-              ) : (
-                operadores.map((op) => (
-                  <MenuItem key={op.id} value={op.id}>
-                    {op.display_name} ({op.email})
-                  </MenuItem>
-                ))
-              )}
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAssignDialogOpen(false)}>Cancelar</Button>
-          <Button
-            onClick={handleAssignOperador}
-            variant="contained"
-            disabled={!selectedOperador}
-          >
-            Asignar
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card>
+                <CardContent>
+                  <Typography color="text.secondary" gutterBottom>
+                    Total Tareas
+                  </Typography>
+                  <Typography variant="h3" color="warning.main">
+                    {stats.total_tareas}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {stats.tareas_completadas} completadas
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Card>
+                <CardContent>
+                  <Typography color="text.secondary" gutterBottom>
+                    Tasa de Completado
+                  </Typography>
+                  <Typography variant="h3" color="success.main">
+                    {stats.total_tareas > 0
+                      ? Math.round((stats.tareas_completadas / stats.total_tareas) * 100)
+                      : 0}%
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+
+          {/* Gráficos */}
+          <Grid container spacing={3}>
+            {/* Incidencias por Estado */}
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Incidencias por Estado
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={incidentsByState}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#2196f3" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
+
+            {/* Incidencias por Tipo */}
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Incidencias por Tipo
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={incidentsByType}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={(entry) => `${entry.name}: ${entry.value}`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {incidentsByType.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
+
+            {/* Tareas - Completadas vs Pendientes */}
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Estado de Tareas
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={taskCompletion}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={(entry) => `${entry.name}: ${entry.value}`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      <Cell fill="#4caf50" />
+                      <Cell fill="#ff9800" />
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
+
+            {/* Gráfico de Resumen */}
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Resumen General
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart
+                    data={[
+                      { name: 'Incidencias', value: stats.total_incidencias },
+                      { name: 'Rutas', value: stats.total_rutas },
+                      { name: 'Tareas', value: stats.total_tareas },
+                      { name: 'Completadas', value: stats.tareas_completadas },
+                    ]}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#4caf50" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
+          </Grid>
+        </>
+      ) : (
+        <Paper sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant="h6" color="text.secondary">
+            No hay datos disponibles para el período seleccionado
+          </Typography>
+        </Paper>
+      )}
+    </Container>
   );
 };
 

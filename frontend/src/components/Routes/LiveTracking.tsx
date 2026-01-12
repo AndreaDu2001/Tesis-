@@ -256,11 +256,37 @@ const LiveTracking: React.FC = () => {
           <CircularProgress />
         </Box>
       ) : activeTracking.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h6" color="text.secondary">
-            No hay vehículos en ruta actualmente
-          </Typography>
-        </Paper>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={3}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                Vehículos Activos (0)
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+              <Typography variant="body2" color="text.secondary">
+                No hay vehículos en ruta actualmente
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={9}>
+            <Paper sx={{ p: 2, height: 600 }}>
+              <Typography variant="h6" gutterBottom>
+                Mapa (sin datos en tiempo real)
+              </Typography>
+              <MapContainer
+                center={[-0.9326, -78.6139]}
+                zoom={13}
+                style={{ height: '540px', width: '100%' }}
+                ref={mapRef}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                />
+              </MapContainer>
+            </Paper>
+          </Grid>
+        </Grid>
       ) : (
         <Grid container spacing={3}>
           {/* Lista de vehículos activos */}

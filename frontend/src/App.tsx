@@ -76,12 +76,8 @@ function App() {
       }
     }
 
-    // Auto-login de desarrollo: si estamos en localhost y no hay token,
-    // intentar iniciar sesión con el admin de prueba (solo para entorno local).
-    const host = window.location.hostname;
-    const isLocal = host === 'localhost' || host === '127.0.0.1';
-
-        if (isLocal && !token) {
+    // Auto-login: si no hay token, intentar iniciar sesión con el admin de prueba
+    if (!token) {
       (async () => {
         try {
           const resp = await fetch(API_ENDPOINTS.AUTH.LOGIN, {

@@ -70,7 +70,7 @@ const ReportesPage: React.FC = () => {
         total_incidencias: data.total_incidencias || 0,
         incidencias_por_estado: (data as any).incidencias_por_estado || {},
         incidencias_por_tipo: data.incidencias_por_tipo || {},
-        total_rutas: data.total_rutas_generadas || 0,
+        total_rutas: data.total_rutas || 0,
         rutas_activas: 0,
         total_tareas: 0,
         tareas_completadas: 0,

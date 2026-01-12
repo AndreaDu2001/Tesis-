@@ -28,6 +28,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import api from '../../services/apiService';
+import { API_BASE_URL } from '../../config/api';
 
 // Configurar icono de Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -124,7 +125,7 @@ const LiveTracking: React.FC = () => {
   const connectWebSocket = (ejecucionId: number) => {
     disconnectWebSocket();
 
-    const wsUrl = `${api.defaults.baseURL?.replace('http', 'ws').replace('https', 'wss')}/tracking/ws/${ejecucionId}`;
+    const wsUrl = `${API_BASE_URL.replace('http://', 'ws://').replace('https://', 'wss://')}/tracking/ws/${ejecucionId}`;
     
     try {
       wsRef.current = new WebSocket(wsUrl);

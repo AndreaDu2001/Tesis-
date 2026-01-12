@@ -42,8 +42,8 @@ export const estadisticasIncidencias = async () => {
 };
 
 export const verificarUmbralZona = async (zona: string) => {
-  // Backend actual no expone umbrales; devolver placeholder para evitar 404
-  console.warn('Umbral no disponible en backend actual, devolviendo placeholder.');
+  // Backend actual no expone umbrales
+  // Devolver estructura vacía para que no cause errores
   return {
     zona,
     suma_gravedad: 0,

@@ -17,6 +17,7 @@ from app.routers import (
     reports,
     reportes,
     operadores,
+    tracking,
 )
 
 # Crear tablas (comentado para usar esquema existente en Neon)
@@ -75,6 +76,7 @@ app.include_router(notifications.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(reportes.router, prefix="/api")
 app.include_router(operadores.router, prefix="/api")
+app.include_router(tracking.router, prefix="/api")
 
 
 @app.get("/")

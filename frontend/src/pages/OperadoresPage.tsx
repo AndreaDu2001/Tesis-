@@ -42,7 +42,7 @@ export default function OperadoresPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | number | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     username: '',
@@ -129,7 +129,7 @@ export default function OperadoresPage() {
         licencia_tipo: 'C',
         zona_preferida: 'oriental',
       };
-      if (editingId) {
+      if (editingId !== null) {
         await api.patch(API_ENDPOINTS.CONDUCTORES.ACTUALIZAR(editingId), payload);
       } else {
         await api.post(API_ENDPOINTS.CONDUCTORES.CREAR, payload);
@@ -237,7 +237,7 @@ export default function OperadoresPage() {
 
       {/* Dialog para crear/editar operador */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingId ? 'Editar Operador' : 'Nuevo Operador'}</DialogTitle>
+        <DialogTitle>{editingId !== null ? 'Editar Operador' : 'Nuevo Operador'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <TextField
             fullWidth
@@ -264,7 +264,7 @@ export default function OperadoresPage() {
             onChange={handleInputChange}
             margin="normal"
           />
-          {!editingId && (
+          {editingId === null && (
             <TextField
               fullWidth
               label="Contraseña"

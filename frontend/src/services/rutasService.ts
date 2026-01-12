@@ -2,16 +2,17 @@ import api from './apiService';
 import { API_ENDPOINTS } from '../config/api';
 
 export const listarRutas = async (params?: { zona?: string; estado?: string; skip?: number; limit?: number; }) => {
-  const query = new URLSearchParams();
-  if (params?.zona) query.append('zona', params.zona);
-  if (params?.estado) query.append('estado', params.estado);
-  const skip = params?.skip ?? 0;
-  const limit = params?.limit ?? 100;
-  query.append('skip', String(skip));
-  query.append('limit', String(limit));
-  const url = `${API_ENDPOINTS.RUTAS.LISTAR}?${query.toString()}`;
-  const { data } = await api.get(url);
-  return data;
+  // Si no se especifica zona, intentar ambas zonas
+  const zona = params?.zona || 'oriental';
+  
+  try {
+    const { data } = await api.get(API_ENDPOINTS.RUTAS.POR_ZONA(zona));
+    // El backend retorna { zona, total, rutas }
+    return data.rutas || [];
+  } catch (error) {
+    console.error('Error al listar rutas:', error);
+    return [];
+  }
 };
 
 export const crearRuta = async (payload: any) => {

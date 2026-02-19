@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+// Force Render redeploy - 2026-01-04 23:30 - Tracking & Horarios to main
 import { 
   ThemeProvider, 
   createTheme, 
@@ -25,6 +26,10 @@ import GeneracionRutas from './components/Routes/GeneracionRutas';
 import MisRutas from './components/Routes/MisRutas';
 import RutaDetalle from './components/Routes/RutaDetalle';
 import IncidentsPage from './components/Incidents/IncidentsPage';
+import ReportesPage from './pages/ReportesPage';
+import OperadoresPage from './pages/OperadoresPage';
+import TrackingPage from './pages/TrackingPage';
+import HorariosPage from './pages/HorariosPage';
 
 const theme = createTheme({
   palette: {
@@ -71,12 +76,8 @@ function App() {
       }
     }
 
-    // Auto-login de desarrollo: si estamos en localhost y no hay token,
-    // intentar iniciar sesión con el admin de prueba (solo para entorno local).
-    const host = window.location.hostname;
-    const isLocal = host === 'localhost' || host === '127.0.0.1';
-
-        if (isLocal && !token) {
+    // Auto-login: si no hay token, intentar iniciar sesión con el admin de prueba
+    if (!token) {
       (async () => {
         try {
           const resp = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
@@ -195,6 +196,10 @@ function App() {
                 <Route path="/rutas/:rutaId" element={<RutaDetalle />} />
                 <Route path="/routes" element={<GeneracionRutas />} />
                 <Route path="/incidents" element={<IncidentsPage />} />
+                <Route path="/reportes" element={<ReportesPage />} />
+                <Route path="/operadores" element={<OperadoresPage />} />
+                <Route path="/tracking" element={<TrackingPage />} />
+                <Route path="/horarios" element={<HorariosPage />} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/login" element={<Navigate to="/dashboard" replace />} />
               </Routes>

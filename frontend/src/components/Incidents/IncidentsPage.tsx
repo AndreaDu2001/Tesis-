@@ -26,6 +26,7 @@ import {
   LocationOn as LocationIcon,
   Delete as DeleteIcon,
   Warning as WarningIcon,
+  PictureAsPdf as PdfIcon,
 } from '@mui/icons-material';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -53,6 +54,7 @@ interface Incident {
   usuario_id?: number;
   reportado_en?: string;
   created_at?: string;
+  direccion?: string; // Dirección obtenida por geocodificación reversa
 }
 
 const INCIDENT_TYPES = [
@@ -93,6 +95,30 @@ const IncidentsPage: React.FC = () => {
     loadIncidents();
   }, []);
 
+  // Geocodificación reversa para obtener dirección desde coordenadas
+  const fetchAddress = async (lat: number, lon: number): Promise<string> => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`
+      );
+      const data = await response.json();
+      if (data.address) {
+        const { road, house_number, neighbourhood, suburb, city, town, village } = data.address;
+        const parts = [
+          house_number,
+          road,
+          neighbourhood || suburb,
+          city || town || village
+        ].filter(Boolean);
+        return parts.join(', ') || 'Dirección no disponible';
+      }
+      return 'Dirección no disponible';
+    } catch (error) {
+      console.error('Error obteniendo dirección:', error);
+      return 'Dirección no disponible';
+    }
+  };
+
   const loadIncidents = async () => {
     try {
       setLoading(true);
@@ -100,7 +126,19 @@ const IncidentsPage: React.FC = () => {
       const data = await IncidenciasService.listarIncidencias();
       // El backend devuelve un array directo: List[IncidenciaResponse]
       const incidentsList = Array.isArray(data) ? data : (data?.incidents || data?.results || []);
-      setIncidents(incidentsList);
+      
+      // Obtener direcciones para cada incidencia con coordenadas
+      const incidentsWithAddress = await Promise.all(
+        incidentsList.map(async (incident: Incident) => {
+          if (incident.lat && incident.lon && !incident.direccion) {
+            const direccion = await fetchAddress(incident.lat, incident.lon);
+            return { ...incident, direccion };
+          }
+          return incident;
+        })
+      );
+      
+      setIncidents(incidentsWithAddress);
     } catch (err: any) {
       setError(toErrorMessage(err) || 'Error al cargar incidencias');
       console.error('Error loading incidents:', err);
@@ -155,6 +193,133 @@ const IncidentsPage: React.FC = () => {
     } catch (err: any) {
       setError(toErrorMessage(err) || 'Error al eliminar incidencia');
     }
+  };
+
+  const handleGeneratePDF = (incident: Incident) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      setError('No se pudo abrir la ventana de impresión. Verifica los permisos del navegador.');
+      return;
+    }
+
+    const tipoLabel = INCIDENT_TYPES.find(t => t.value === incident.tipo)?.label || incident.tipo;
+    const estadoLabel = STATUS_OPTIONS.find(s => s.value === incident.estado)?.label || incident.estado;
+    const gravedadLabel = GRAVEDAD_LEVELS.find(g => g.value === incident.gravedad)?.label || `Nivel ${incident.gravedad}`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Reporte de Incidencia #${incident.id}</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            color: #333;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 3px solid #2196f3;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2196f3;
+          }
+          .title {
+            font-size: 20px;
+            margin-top: 10px;
+          }
+          .section {
+            margin-bottom: 20px;
+          }
+          .label {
+            font-weight: bold;
+            color: #666;
+            display: inline-block;
+            width: 150px;
+          }
+          .value {
+            color: #333;
+          }
+          .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            background-color: #e0e0e0;
+            font-size: 14px;
+            margin-left: 10px;
+          }
+          .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+          }
+          @media print {
+            body { padding: 20px; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="logo">EPAGAL - Latacunga</div>
+          <div class="title">Reporte de Incidencia #${incident.id}</div>
+        </div>
+
+        <div class="section">
+          <div><span class="label">Tipo:</span> <span class="value">${tipoLabel}</span></div>
+        </div>
+
+        <div class="section">
+          <div><span class="label">Descripción:</span></div>
+          <div class="value" style="margin-top: 10px;">${incident.descripcion || 'Sin descripción'}</div>
+        </div>
+
+        <div class="section">
+          <div><span class="label">Gravedad:</span> <span class="value">${gravedadLabel}</span></div>
+        </div>
+
+        <div class="section">
+          <div><span class="label">Estado:</span> <span class="value">${estadoLabel}</span></div>
+        </div>
+
+        <div class="section">
+          <div><span class="label">Zona:</span> <span class="value">${incident.zona || 'No especificada'}</span></div>
+        </div>
+
+        <div class="section">
+          <div><span class="label">Dirección:</span></div>
+          <div class="value" style="margin-top: 5px;">${incident.direccion || 'No disponible'}</div>
+        </div>
+
+        <div class="section">
+          <div><span class="label">Coordenadas:</span> <span class="value">Lat: ${incident.lat?.toFixed(6) || 'N/A'}, Lon: ${incident.lon?.toFixed(6) || 'N/A'}</span></div>
+        </div>
+
+        <div class="section">
+          <div><span class="label">Fecha de Reporte:</span> <span class="value">${incident.created_at ? new Date(incident.created_at).toLocaleString('es-EC') : 'No disponible'}</span></div>
+        </div>
+
+        <div class="footer">
+          <p>Sistema de Gestión de Incidencias - EPAGAL Latacunga</p>
+          <p>Generado: ${new Date().toLocaleString('es-EC')}</p>
+        </div>
+
+        <div class="no-print" style="text-align: center; margin-top: 30px;">
+          <button onclick="window.print()" style="padding: 10px 30px; background-color: #2196f3; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">Imprimir / Guardar PDF</button>
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
   };
 
   const resetForm = () => {
@@ -250,6 +415,12 @@ const IncidentsPage: React.FC = () => {
                         <br />
                         {incident.descripcion}
                         <br />
+                        <Box sx={{ mt: 1, mb: 1 }}>
+                          <LocationIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5, fontSize: 14 }} />
+                          <Typography variant="caption" component="span">
+                            {incident.direccion || 'Obteniendo dirección...'}
+                          </Typography>
+                        </Box>
                         <Chip
                           label={`Gravedad ${incident.gravedad ?? 1}`}
                           size="small"
@@ -329,6 +500,14 @@ const IncidentsPage: React.FC = () => {
                         </MenuItem>
                       ))}
                     </TextField>
+                    <IconButton
+                      size="small"
+                      color="primary"
+                      onClick={() => handleGeneratePDF(incident)}
+                      title="Generar PDF"
+                    >
+                      <PdfIcon />
+                    </IconButton>
                     <IconButton
                       size="small"
                       color="error"

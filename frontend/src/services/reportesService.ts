@@ -2,50 +2,43 @@ import api from './apiService';
 import { API_ENDPOINTS } from '../config/api';
 
 export interface ReporteEstadisticas {
-  period: string;
   total_incidencias: number;
-  total_rutas_generadas: number;
-  total_rutas_completadas: number;
-  suma_gravedad_total: number;
+  incidencias_por_estado: Record<string, number>;
   incidencias_por_tipo: Record<string, number>;
-  incidencias_por_zona: Record<string, number>;
-  eficiencia_conductores: any[];
+  total_rutas?: number;
+  por_zona?: Record<string, number>;
 }
 
 export const reporteEstadisticas = async (params?: { fecha_inicio?: string; fecha_fin?: string; }) => {
   try {
-    const queryParams = new URLSearchParams();
-    if (params?.fecha_inicio) queryParams.append('start_date', params.fecha_inicio);
-    if (params?.fecha_fin) queryParams.append('end_date', params.fecha_fin);
-    const url = `${API_ENDPOINTS.REPORTS.ESTADISTICAS}?${queryParams.toString()}`;
-    const response = await api.get(url);
-    // Si es 404, devolver placeholder (endpoint no existe)
+    // El endpoint /incidencias/stats no requiere parámetros de fecha (trae todo)
+    // pero los aceptamos para compatibilidad con el frontend
+    const response = await api.get(`${API_ENDPOINTS.INCIDENCIAS.STATS}`);
+    
     if (response.status === 404) {
       return {
-        period: `${params?.fecha_inicio || 'N/A'} - ${params?.fecha_fin || 'N/A'}`,
         total_incidencias: 0,
-        total_rutas_generadas: 0,
-        total_rutas_completadas: 0,
-        suma_gravedad_total: 0,
+        incidencias_por_estado: {},
         incidencias_por_tipo: {},
-        incidencias_por_zona: {},
-        eficiencia_conductores: [],
+        total_rutas: 0,
       } as ReporteEstadisticas;
     }
+    
     const { data } = response;
-    return data as ReporteEstadisticas;
-  } catch (err: any) {
-    // Errores reales (no 404)
-    console.error('Error inesperado en reporteEstadisticas:', err);
     return {
-      period: `${params?.fecha_inicio || 'N/A'} - ${params?.fecha_fin || 'N/A'}`,
+      total_incidencias: data.total || 0,
+      incidencias_por_estado: data.por_estado || {},
+      incidencias_por_tipo: data.por_tipo || {},
+      total_rutas: 0,
+      por_zona: data.por_zona || {},
+    } as ReporteEstadisticas;
+  } catch (err: any) {
+    console.error('Error en reporteEstadisticas:', err);
+    return {
       total_incidencias: 0,
-      total_rutas_generadas: 0,
-      total_rutas_completadas: 0,
-      suma_gravedad_total: 0,
+      incidencias_por_estado: {},
       incidencias_por_tipo: {},
-      incidencias_por_zona: {},
-      eficiencia_conductores: [],
+      total_rutas: 0,
     } as ReporteEstadisticas;
   }
 };

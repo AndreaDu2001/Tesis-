@@ -78,11 +78,39 @@ export default function RutaDetalle() {
     try {
       setLoading(true);
       setError(null);
-      // En el backend Go, los detalles de órdenes de trabajo vienen del Operations Service
-      setData({ ruta: null, incidencias: [], puntos: [] });
-      setError('Los detalles de rutas se muestran como órdenes de trabajo en el Operations Service');
+      
+      // Llamar al endpoint real del backend para obtener detalles de la ruta
+      const response = await fetch(`https://epagal-backend-routing-latest.onrender.com/api/rutas/${rutaId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const rutaData = await response.json();
+      
+      // Adaptar la respuesta del backend a la estructura esperada
+      setData({
+        ruta: {
+          id: rutaData.id,
+          zona: rutaData.zona,
+          estado: rutaData.estado,
+          suma_gravedad: rutaData.suma_gravedad,
+          camiones_usados: rutaData.camiones_usados,
+          duracion_estimada: rutaData.duracion_estimada || 'N/A',
+          costo_total_metros: rutaData.costo_total_metros || 0,
+          fecha_generacion: rutaData.fecha_generacion,
+        },
+        incidencias: rutaData.incidencias || [],
+        puntos: rutaData.puntos || [],
+      });
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Error al cargar detalles de ruta');
+      setError(err?.message || 'Error al cargar detalles de ruta');
+      console.error('Error cargando ruta:', err);
     } finally {
       setLoading(false);
     }
